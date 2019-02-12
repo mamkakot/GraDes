@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#444a57</color>
+    <color name="dugaColor">#EDFF0000</color>
+    <color name="rebroColor">#416380</color>
+    <color name="verColor">#5581a6</color>
+    <color name="BGColor">#338aa0b3</color>
+</resources>

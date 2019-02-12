@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">GraDes</string>
+    <string name="matrix_title">Матрицы</string>
+    <string name="cont_delete">Удалить вершину</string>
+    <string name="cont_duga">Создать дугу</string>
+    <string name="cont_rebro">Создать ребро</string>
+
+    <string name="action_create">Создать вершину</string>
+    <string name="action_move">Перемещать вершины</string>
+    <string name="action_matrix">Посмотреть матрицы</string>
+    <string name="action_info">Глоссарий теории графов</string>
+    <string name="reklama">Здесь могла быть ваша реклама</string>
+    <string name="cont_sub_del_rebra">Удалить рёбра</string>
+</resources>

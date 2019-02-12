@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_create"
+        android:icon="@drawable/bombezno"
+        android:orderInCategory="3"
+        android:title="@string/action_create"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_matrix"
+        android:orderInCategory="100"
+        android:title="@string/action_matrix"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_info"
+        android:orderInCategory="100"
+        android:title="@string/action_info"
+        app:showAsAction="never" />
+
+
+</menu>
