@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         vershiny = new ArrayList<>();
         lines = new ArrayList<>();
         dp = getResources().getDisplayMetrics().density;
-        btnSide = (int) (50*dp);
+        btnSide = (int) (42*dp);
         switchMove = findViewById(R.id.switchMove);
         if (switchMove != null) switchMove.setOnCheckedChangeListener(this);
     }
@@ -103,8 +103,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 CircleButton vershNew = new CircleButton(this);
                 TextDrawable text = new TextDrawable(this);
                 RelativeLayout.LayoutParams rel_lay = new RelativeLayout.LayoutParams(btnSide, btnSide); // ширина и высота создаваемой кнопки
-                rel_lay.leftMargin = random.nextInt(rlmain.getWidth() - 200 / (int) dp); // рандомный отступ от левой границы
-                rel_lay.topMargin = random.nextInt(rlmain.getHeight() - 200 / (int) dp); // рандомный отступ от верхней границы
+                rel_lay.leftMargin = random.nextInt(rlmain.getWidth() - btnSide); // рандомный отступ от левой границы
+                rel_lay.topMargin = random.nextInt(rlmain.getHeight() - btnSide); // рандомный отступ от верхней границы
                 vershNew.setLayoutParams(rel_lay); // задание кнопке указанных параметров
                 vershNew.setId(buttonId);
                 text.setText(Integer.toString(++buttonId));

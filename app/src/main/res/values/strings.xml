@@ -11,4 +11,8 @@
     <string name="action_info">Глоссарий теории графов</string>
     <string name="reklama">Здесь могла быть ваша реклама</string>
     <string name="cont_sub_del_rebra">Удалить рёбра</string>
+    <string name="matrix_smej">Матрица смежности:</string>
+    <string name="matrix_incid">Матрица инцидентности:</string>
+    <string name="matrix_dostij">Матрица достижимости:</string>
+    <string name="matrix_rasst">Матрица расстояний:</string>
 </resources>

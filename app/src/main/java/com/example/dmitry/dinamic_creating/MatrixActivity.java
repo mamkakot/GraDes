@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -13,7 +14,9 @@ import android.widget.Toast;
 public class MatrixActivity extends AppCompatActivity {
     boolean[][] smejVer;
     int[][] incidVer;
+    //int height;
     TextView textSmej;
+    LinearLayout matrixLayout;
     String text = "";
 
     @Override
@@ -34,7 +37,10 @@ public class MatrixActivity extends AppCompatActivity {
         assert actionBar != null;
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
+        matrixLayout = findViewById(R.id.matrix_layout);
+        //height = matrixLayout.getHeight()/4;
         textSmej = findViewById(R.id.textViewSmej);
+        //textSmej.setHeight(height);
         smejVer = (boolean[][]) getIntent().getSerializableExtra("smej");
         incidVer = (int[][]) getIntent().getSerializableExtra("incid");
         if (smejVer.length >= 228) {
@@ -42,7 +48,7 @@ public class MatrixActivity extends AppCompatActivity {
             return;
         }
         if (smejVer.length != 0) {
-            textSmej.setText("Матрица смежности: ");
+            //textSmej.setText("Матрица\nсмежности: ");
             TableLayout tableLayout = findViewById(R.id.tableLayoutSmej);
             for (int i = 0; i < smejVer.length; i++) {
                 TableRow tableRow = new TableRow(this);
