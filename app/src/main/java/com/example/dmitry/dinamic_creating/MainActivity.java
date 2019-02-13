@@ -1,5 +1,6 @@
 package com.example.dmitry.dinamic_creating;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
@@ -30,8 +31,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     ArrayList<DrawLine> lines; // массив со связями
     ArrayList<View> vershiny; // массив со всеми вершинами
 
-    boolean[][] smejVerBool;
-    int[][] incidVerCount;
+    boolean[][] smejVerBool, incidVerBool;
     float dp;
     int buttonId = 0, btnSide, width=0, height=0; // подсчёт кнопок
     private float dX, dY;
@@ -42,9 +42,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             btnMainColor = Color.DKGRAY,
             bgColor = R.color.BGColor;
     boolean lineCreating = false, whatColor;
-    final int MENU_DEL_VER = 1002,
-            MENU_DEL_LINE = 1003,
-            MENU_LINE = 1004;
+    final int MENU_DEL_VER = 1002, MENU_LINE = 1004;
 
     final String TAG = "GraDes";
     Random random = new Random();
@@ -95,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         return true;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -121,25 +120,20 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 break;
             case (R.id.action_matrix):
                 smejVerBool = new boolean[vershiny.size()][vershiny.size()];
-                incidVerCount = new int[vershiny.size()][lines.size()];
-                int[] versList = new int[vershiny.size()];
-                int[] linesList = new int[lines.size()];
-                for (int i = 0; i < vershiny.size(); i++) {
-                    versList[i] = vershiny.get(i).getId();
-                }
+                incidVerBool = new boolean[vershiny.size()][lines.size()];
                 // TODO сюда же встроить подсчёт кол-ва рёбер для матрицы индидентности
                 for (int i = 0; i < vershiny.size(); i++) {
                     for (int j = 0; j < lines.size(); j++) {
                         if (vershiny.get(i) == lines.get(j).secondBtn) {
                             smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).firstBtn)] = true;
-                            incidVerCount[vershiny.get(i).getId()][j]++;
                             // TODO переделать эту обоссанную ошибку с индексом, который больше длины
                         }
+                        if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) incidVerBool[vershiny.get(i).getId()][j] = true;
                     }
                 }
                 Intent intent = new Intent(MainActivity.this, MatrixActivity.class);
                 intent.putExtra("smej", smejVerBool);
-                intent.putExtra("incid", incidVerCount);
+                intent.putExtra("incid", incidVerBool);
                 startActivity(intent);
                 break;
         }
@@ -157,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             if (aWhile == lines.get(i).firstBtn || aWhile == lines.get(i).secondBtn) {
                 subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + Integer.toString(i+1));
             }
+            // TODO Добавить удаление рёбер
         }
         menu.add(Menu.NONE, MENU_LINE, Menu.NONE, getString(R.string.cont_rebro));
     }
@@ -204,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     }
 
     // метод для перемещения вершины по экрану
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 

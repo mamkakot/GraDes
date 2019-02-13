@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/matrix_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -14,54 +12,49 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="match_parent" />
+
         <TextView
             android:id="@+id/textViewSmej"
-            android:layout_width="228dp"
+            android:layout_width="114dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
             android:text="@string/matrix_smej" />
 
         <ScrollView
-            android:layout_width="match_parent"
+            android:layout_width="257dp"
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <LinearLayout
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
-
-                        <TableLayout
-                            android:id="@+id/tableLayoutSmej"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
-                    </LinearLayout>
-                </HorizontalScrollView>
-            </LinearLayout>
+                <TableLayout
+                    android:id="@+id/tableLayoutSmej"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+            </HorizontalScrollView>
         </ScrollView>
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/incidLay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="horizontal">
 
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:id="@+id/textViewIncid"
-            android:layout_width="228dp"
+            android:layout_width="114dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
             android:text="@string/matrix_incid" />
 
         <ScrollView
@@ -69,42 +62,34 @@
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <LinearLayout
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
-
-                        <TableLayout
-                            android:id="@+id/tableLayoutIncid"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
-                    </LinearLayout>
-                </HorizontalScrollView>
-            </LinearLayout>
+                <TableLayout
+                    android:id="@+id/tableLayoutIncid"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+            </HorizontalScrollView>
         </ScrollView>
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/dostijLay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="horizontal">
 
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:id="@+id/textViewDostij"
-            android:layout_width="228dp"
+            android:layout_width="114dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
             android:text="@string/matrix_dostij" />
 
         <ScrollView
@@ -112,42 +97,34 @@
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <LinearLayout
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
-
-                        <TableLayout
-                            android:id="@+id/tableLayoutDostij"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
-                    </LinearLayout>
-                </HorizontalScrollView>
-            </LinearLayout>
+                <TableLayout
+                    android:id="@+id/tableLayoutDostij"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+            </HorizontalScrollView>
         </ScrollView>
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/rasstLay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:orientation="horizontal">
 
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:id="@+id/textViewRasst"
-            android:layout_width="228dp"
+            android:layout_width="114dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
             android:text="@string/matrix_rasst" />
 
         <ScrollView
@@ -155,27 +132,15 @@
             android:layout_height="match_parent"
             android:layout_weight="1">
 
-            <LinearLayout
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:orientation="vertical">
-
-                        <TableLayout
-                            android:id="@+id/tableLayoutRasst"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
-                    </LinearLayout>
-                </HorizontalScrollView>
-            </LinearLayout>
+                <TableLayout
+                    android:id="@+id/tableLayoutRasst"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+            </HorizontalScrollView>
         </ScrollView>
 
     </LinearLayout>
