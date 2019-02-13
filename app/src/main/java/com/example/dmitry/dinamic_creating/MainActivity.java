@@ -28,13 +28,13 @@ import at.markushi.ui.CircleButton;
 public class MainActivity extends AppCompatActivity implements Serializable, View.OnClickListener, View.OnTouchListener, CompoundButton.OnCheckedChangeListener {
     RelativeLayout rlmain;
     ArrayList<DrawLine> lines; // массив со связями
-    ArrayList<View> vershiny; // массив со всеми вершинами и со смежными
+    ArrayList<View> vershiny; // массив со всеми вершинами
 
     boolean[][] smejVerBool;
     int[][] incidVerCount;
     float dp;
     int buttonId = 0, btnSide, width=0, height=0; // подсчёт кнопок
-    private int mX, mY;
+    private float dX, dY;
     View aWhile;
     Switch switchMove;
     int blue = R.color.rebroColor,
@@ -206,26 +206,22 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     // метод для перемещения вершины по экрану
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        final int X = (int) event.getRawX();
-        final int Y = (int) event.getRawY();
 
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             // ACTION_DOWN срабатывает при прикосновении к экрану,
             // здесь определяется начальное стартовое положение объекта:
             case MotionEvent.ACTION_DOWN:
-                RelativeLayout.LayoutParams lParams = (RelativeLayout.LayoutParams) v.getLayoutParams();
-                mX = X - lParams.leftMargin;
-                mY = Y - lParams.topMargin;
+                dX = v.getX() - event.getRawX();
+                dY = v.getY() - event.getRawY();
                 break;
             // ACTION_MOVE обрабатывает случившиеся в процессе прикосновения изменения, здесь
             // содержится информация о последней точке, где находится объект после окончания действия прикосновения ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
-                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) v.getLayoutParams();
-                layoutParams.leftMargin = X - mX;
-                layoutParams.topMargin = Y - mY;
-                layoutParams.bottomMargin = -25;
-                layoutParams.rightMargin = -25;
-                v.setLayoutParams(layoutParams);
+                v.animate()
+                        .x(event.getRawX() + dX)
+                        .y(event.getRawY() + dY)
+                        .setDuration(0)
+                        .start();
 
                 if (!lines.isEmpty())
                     for (DrawLine line : lines) {
