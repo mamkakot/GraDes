@@ -46,25 +46,32 @@ public class MatrixActivity extends AppCompatActivity {
         if (smejVer.length != 0) {
             StringBuilder stringSmej = new StringBuilder(), stringIncid = new StringBuilder();
             // TODO Сделать-таки подписи к осям (ну то есть номера вершин и рёбер, да)
-            for (int i = 0; i < smejVer.length; i++) {
-                for (int j = 0; j <= i; j++) {
-                    if (smejVer[i][j]) text = "1 | ";
+            for (int i = 1; i <= smejVer.length; i++) {
+                if (i < 10) {
+                    stringSmej.append("    ");
+                    stringIncid.append("    ");
+                }
+                if (i >= 10 && i < 100) {
+                    stringSmej.append("  ");
+                    stringIncid.append("  ");
+                }
+                stringSmej.append(i).append(": ");
+                stringIncid.append(i).append(": ");
+                for (int j = 0; j < i; j++) {
+                    if (smejVer[i-1][j]) text = "1 | ";
                     else text = "0 | ";
                     stringSmej.append(text);
                 }
-                stringSmej.append("\n");
-            }
-
-            for (int i = 0; i < smejVer.length; i++) {
-                for (int t = 0; t < incidVer[i].length; t++) {
-                    if (incidVer[i][t]) text = "1 ";
-                    else text = "0 ";
+                for (int t = 0; t < incidVer[i-1].length; t++) {
+                    if (incidVer[i-1][t]) text = "1 | ";
+                    else text = "0 | ";
                     stringIncid.append(text);
                 }
+                stringSmej.append("\n");
                 stringIncid.append("\n");
             }
             matrixSmej.setText(stringSmej);
-            matrixIncid.setText(stringIncid);
+            if (incidVer[0].length != 0) matrixIncid.setText(stringIncid);
         }
     }
 }
