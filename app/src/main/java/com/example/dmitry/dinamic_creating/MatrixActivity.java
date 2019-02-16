@@ -55,15 +55,15 @@ public class MatrixActivity extends AppCompatActivity {
                     stringSmej.append("  ");
                     stringIncid.append("  ");
                 }
-                stringSmej.append(i).append(": ");
-                stringIncid.append(i).append(": ");
+                stringSmej.append(i).append(": |");
+                stringIncid.append(i).append(": |");
                 for (int j = 0; j < i; j++) {
-                    if (smejVer[i-1][j]) text = "1 | ";
+                    if (smejVer[i - 1][j]) text = "1 | ";
                     else text = "0 | ";
                     stringSmej.append(text);
                 }
-                for (int t = 0; t < incidVer[i-1].length; t++) {
-                    if (incidVer[i-1][t]) text = "1 | ";
+                for (int t = 0; t < incidVer[i - 1].length; t++) {
+                    if (incidVer[i - 1][t]) text = "1 | ";
                     else text = "0 | ";
                     stringIncid.append(text);
                 }

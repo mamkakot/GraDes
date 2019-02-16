@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     boolean[][] smejVerBool, incidVerBool;
     float dp;
-    int buttonId = 0, btnSide, width=0, height=0; // подсчёт кнопок
+    int buttonId = 0, lineId = 0, btnSide, width = 0, height = 0; // подсчёт кнопок
     private float dX, dY;
     View aWhile;
     Switch switchMove;
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     final String TAG = "GraDes";
     Random random = new Random();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Display display = getWindowManager().getDefaultDisplay();
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         vershiny = new ArrayList<>();
         lines = new ArrayList<>();
         dp = getResources().getDisplayMetrics().density;
-        btnSide = (int) (42*dp);
+        btnSide = (int) (42 * dp);
         switchMove = findViewById(R.id.switchMove);
         if (switchMove != null) switchMove.setOnCheckedChangeListener(this);
     }
@@ -72,9 +73,11 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             if (lineCreating) {
                 DrawLine mDrawLine = new DrawLine(this);
                 mDrawLine.setCoords(aWhile, view);
+                mDrawLine.setId(lineId);
+                mDrawLine.number = Integer.toString(++lineId);
                 mDrawLine.draw();
                 if (whatColor) {
-                    mDrawLine.setColor(getResources().getColor(blue));
+                    mDrawLine.setColor(getResources().getColor(red));
                 } else {
                     mDrawLine.setColor(getResources().getColor(red));
                 }
@@ -108,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 vershNew.setId(buttonId);
                 text.setText(Integer.toString(++buttonId));
                 text.setTextColor(Color.WHITE);
-                vershNew.setColor(btnMainColor);
+                vershNew.setColor(getResources().getColor(blue));
                 vershNew.setImageDrawable(text);
                 vershiny.add(vershNew);
                 rlmain.addView(vershNew); // добавление кнопки на главный экран
@@ -121,14 +124,14 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             case (R.id.action_matrix):
                 smejVerBool = new boolean[vershiny.size()][vershiny.size()];
                 incidVerBool = new boolean[vershiny.size()][lines.size()];
-                // TODO сюда же встроить подсчёт кол-ва рёбер для матрицы индидентности
                 for (int i = 0; i < vershiny.size(); i++) {
                     for (int j = 0; j < lines.size(); j++) {
                         if (vershiny.get(i) == lines.get(j).secondBtn) {
                             smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).firstBtn)] = true;
-                            // TODO переделать эту обоссанную ошибку с индексом, который больше длины
                         }
-                        if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) incidVerBool[vershiny.get(i).getId()][j] = true;
+                        if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
+                            incidVerBool[vershiny.get(i).getId()][j] = true;
+                        }
                     }
                 }
                 Intent intent = new Intent(MainActivity.this, MatrixActivity.class);
@@ -149,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         SubMenu subMenu = menu.addSubMenu(getString(R.string.cont_sub_del_rebra)); // подменю
         for (int i = 0; i < lines.size(); i++) {
             if (aWhile == lines.get(i).firstBtn || aWhile == lines.get(i).secondBtn) {
-                subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + Integer.toString(i+1));
+                subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + Integer.toString(i + 1));
             }
             // TODO Добавить удаление рёбер
         }
