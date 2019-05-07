@@ -20,23 +20,30 @@ import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 
 import at.markushi.ui.CircleButton;
 
+
 public class MainActivity extends AppCompatActivity implements Serializable, View.OnClickListener, View.OnTouchListener, CompoundButton.OnCheckedChangeListener {
+    private static final String FILENAME = "file.txt";
     RelativeLayout rlmain;
     ArrayList<DrawLine> lines; // массив со связями
     ArrayList<View> vershiny; // массив со всеми вершинами
-
     boolean[][] smejVerBool, incidVerBool;
     float dp;
     int buttonId = 0, lineId = 0, btnSide, width = 0, height = 0; // подсчёт кнопок
     private float dX, dY;
     View aWhile;
-    Switch switchMove;
+    Switch switchMove, switchAdd;
     int blue = R.color.rebroColor,
             red = R.color.dugaColor,
             btnMainColor = Color.DKGRAY,
@@ -47,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     final String TAG = "GraDes";
     Random random = new Random();
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Display display = getWindowManager().getDefaultDisplay();
@@ -59,11 +67,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         setContentView(R.layout.activity_main);
         rlmain = findViewById(R.id.rlmain);
         rlmain.setBackgroundColor(getResources().getColor(bgColor));
+        rlmain.setOnTouchListener(this);
         vershiny = new ArrayList<>();
         lines = new ArrayList<>();
         dp = getResources().getDisplayMetrics().density;
         btnSide = (int) (42 * dp);
         switchMove = findViewById(R.id.switchMove);
+        switchAdd = findViewById(R.id.switchAdd);
         if (switchMove != null) switchMove.setOnCheckedChangeListener(this);
     }
 
@@ -97,28 +107,29 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     }
 
     @SuppressLint("ClickableViewAccessibility")
+    void createVer(float x, float y){
+        CircleButton vershNew = new CircleButton(this);
+        TextDrawable text = new TextDrawable(this);
+        RelativeLayout.LayoutParams rel_lay = new RelativeLayout.LayoutParams(btnSide, btnSide); // ширина и высота создаваемой кнопки
+        rel_lay.leftMargin = (int)x;//random.nextInt(rlmain.getWidth() - btnSide); // рандомный отступ от левой границы
+        rel_lay.topMargin = (int)y;//random.nextInt(rlmain.getHeight() - btnSide); // рандомный отступ от верхней границы
+        vershNew.setLayoutParams(rel_lay); // задание кнопке указанных параметров
+        vershNew.setId(buttonId);
+        text.setText(Integer.toString(++buttonId));
+        text.setTextColor(Color.WHITE);
+        vershNew.setColor(getResources().getColor(blue));
+        vershNew.setImageDrawable(text);
+        vershiny.add(vershNew);
+        rlmain.addView(vershNew); // добавление кнопки на главный экран
+        registerForContextMenu(vershNew); // для дальнейшего вызова контекстного меню
+        vershNew.setOnClickListener(this); // навешивание слушателя
+        if (switchMove.isChecked()) vershNew.setOnTouchListener(this);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
-            case (R.id.action_create):
-                CircleButton vershNew = new CircleButton(this);
-                TextDrawable text = new TextDrawable(this);
-                RelativeLayout.LayoutParams rel_lay = new RelativeLayout.LayoutParams(btnSide, btnSide); // ширина и высота создаваемой кнопки
-                rel_lay.leftMargin = random.nextInt(rlmain.getWidth() - btnSide); // рандомный отступ от левой границы
-                rel_lay.topMargin = random.nextInt(rlmain.getHeight() - btnSide); // рандомный отступ от верхней границы
-                vershNew.setLayoutParams(rel_lay); // задание кнопке указанных параметров
-                vershNew.setId(buttonId);
-                text.setText(Integer.toString(++buttonId));
-                text.setTextColor(Color.WHITE);
-                vershNew.setColor(getResources().getColor(blue));
-                vershNew.setImageDrawable(text);
-                vershiny.add(vershNew);
-                rlmain.addView(vershNew); // добавление кнопки на главный экран
-                registerForContextMenu(vershNew); // для дальнейшего вызова контекстного меню
-                vershNew.setOnClickListener(this); // навешивание слушателя
-                if (switchMove.isChecked()) vershNew.setOnTouchListener(this);
-                break;
             case (R.id.action_info):
                 break;
             case (R.id.action_matrix):
@@ -128,7 +139,10 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                     for (int j = 0; j < lines.size(); j++) {
                         if (vershiny.get(i) == lines.get(j).secondBtn) {
                             smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).firstBtn)] = true;
-                        }
+                        }/*
+                        if (vershiny.get(i) == lines.get(j).firstBtn) {
+                            smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).secondBtn)] = true;
+                        }*/
                         if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
                             incidVerBool[vershiny.get(i).getId()][j] = true;
                         }
@@ -152,9 +166,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         SubMenu subMenu = menu.addSubMenu(getString(R.string.cont_sub_del_rebra)); // подменю
         for (int i = 0; i < lines.size(); i++) {
             if (aWhile == lines.get(i).firstBtn || aWhile == lines.get(i).secondBtn) {
-                subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + Integer.toString(i + 1));
+                subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + (i + 1));
             }
-            // TODO Добавить удаление рёбер
         }
         menu.add(Menu.NONE, MENU_LINE, Menu.NONE, getString(R.string.cont_rebro));
     }
@@ -163,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     public boolean onContextItemSelected(MenuItem item) {
         StringBuilder message;
         switch (item.getItemId()) {
+            // удаление вершины
             case MENU_DEL_VER:
                 ArrayList<DrawLine> linesToDel = new ArrayList<>();
                 //ArrayList<View> verToDel = new ArrayList<>();
@@ -173,22 +187,16 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                         vershiny.get(j).setVisibility(View.GONE);
                         for (int i = 0; i < lines.size(); i++) {
                             if (lines.get(i).firstBtn == vershiny.get(j) || lines.get(i).secondBtn == vershiny.get(j)) {
-                                message.append(Integer.toString(i)).append(" ");
                                 lines.get(i).setVisibility(View.GONE);
                                 linesToDel.add(lines.get(i)); // массив для дальнейшего удаления
                             }
                         }
-                        //verToDel.add(vershiny.get(j)); // вот эта хрень
                     }
                 }
-                Log.i(TAG, "Lines size1: " + Integer.toString(lines.size()));
                 lines.removeAll(linesToDel); // вся эта хрень выше -- для нормального удаления связей и вершин
-                Log.i(TAG, "Lines size2: " + Integer.toString(lines.size()) + "\nVer size 1: " + Integer.toString(vershiny.size()));
-                //vershiny.removeAll(verToDel); // трогай, плиз
-                Log.i(TAG, "Ver size2: " + Integer.toString(vershiny.size()));
                 linesToDel.clear(); // освобождение памяти
-                //verToDel.clear();
                 break;
+                // создание линии
             case MENU_LINE:
                 message = new StringBuilder("Нажмите на вершину");
                 lineCreating = true;
@@ -201,43 +209,91 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         return false;
     }
 
-    // метод для перемещения вершины по экрану
+    // функция для создания перетаскивания вершин
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
 
-        switch (event.getAction() & MotionEvent.ACTION_MASK) {
+        switch (event.getAction()) {
             // ACTION_DOWN срабатывает при прикосновении к экрану,
             // здесь определяется начальное стартовое положение объекта:
             case MotionEvent.ACTION_DOWN:
-                dX = v.getX() - event.getRawX();
-                dY = v.getY() - event.getRawY();
+                // создание
+                if (switchAdd.isChecked()) {
+                    createVer(event.getX(), event.getY());
+                }
+                else {
+                    dX = v.getX() - event.getRawX();
+                    dY = v.getY() - event.getRawY();
+                }
                 break;
             // ACTION_MOVE обрабатывает случившиеся в процессе прикосновения изменения, здесь
             // содержится информация о последней точке, где находится объект после окончания действия прикосновения ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
-                v.animate()
-                        .x(event.getRawX() + dX)
-                        .y(event.getRawY() + dY)
-                        .setDuration(0)
-                        .start();
+                // перетаскивание
+                if (vershiny.contains(v)) {
+                    v.animate()
+                            .x(event.getRawX() + dX)
+                            .y(event.getRawY() + dY)
+                            .setDuration(0)
+                            .start();
 
-                if (!lines.isEmpty())
-                    for (DrawLine line : lines) {
-                        for (View smejBtn : vershiny) {
-                            if (smejBtn == line.secondBtn) line.setCoords(line.firstBtn, smejBtn);
-                            if (smejBtn == line.firstBtn) line.setCoords(smejBtn, line.secondBtn);
+                    // чтобы линии тоже отрисовывались вместе с движением вершины
+                    if (!lines.isEmpty())
+                        for (DrawLine line : lines) {
+                            for (View smejBtn : vershiny) {
+                                if (smejBtn == line.secondBtn)
+                                    line.setCoords(line.firstBtn, smejBtn);
+                                if (smejBtn == line.firstBtn)
+                                    line.setCoords(smejBtn, line.secondBtn);
+                            }
+                            line.draw();
                         }
-                        line.draw();
-                    }
+                }
                 break;
         }
         return true;
     }
 
+    // метод для навешивания слушателя всем вершинам
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (isChecked) for (View ver : vershiny) ver.setOnTouchListener(this);
         else for (View ver : vershiny) ver.setOnTouchListener(null);
+    }
+
+    // кнопка сохранения графа, мб также вписать в меню
+    public void onClickBtnSave(View view) {
+        int rr = 0;
+        for (View ver:
+             vershiny) {
+            Log.d(Integer.toString(rr++), "x: " + ver.getX() + ", y: " + ver.getY());
+        }
+    }
+
+    // кнопка загрузки графа, мб вписать в меню
+    public void onClickBtnLoad(View view) {
+        rlmain.removeAllViews();
+        vershiny.clear();
+        buttonId = 0;
+        lines.clear();
+        lineId = 0;
+
+
+        try {
+            // открываем поток для чтения
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    openFileInput(FILENAME)));
+            String str = "";
+            // читаем содержимое
+            while ((str = br.readLine()) != null) {
+                Log.d("sees ", str);
+                Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

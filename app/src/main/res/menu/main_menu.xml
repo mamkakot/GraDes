@@ -4,12 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
     <item
-        android:id="@+id/action_create"
-        android:icon="@drawable/bombezno"
-        android:orderInCategory="3"
-        android:title="@string/action_create"
-        app:showAsAction="always" />
-    <item
         android:id="@+id/action_matrix"
         android:orderInCategory="100"
         android:title="@string/action_matrix"

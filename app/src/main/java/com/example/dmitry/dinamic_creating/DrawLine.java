@@ -5,12 +5,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
 public class DrawLine extends View {
-    float startX, endX, startY, endY;
+    float startX, endX, startY, endY, dp = getResources().getDisplayMetrics().density;
+    Path path = new Path();
     Paint paintLine = new Paint(), paintNum = new Paint(), paintText = new Paint();
     public View firstBtn, secondBtn;
     public String number = "";
@@ -31,21 +34,45 @@ public class DrawLine extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
-        canvas.drawLine(startX, startY, endX, endY, paintLine);
-        paintText.setTextSize(32);
-        paintText.getTextBounds(number, 0, number.length(), mTextRect);
-        int circleColor = R.color.num_color;
-        int textColor = R.color.BGColor;
-        paintNum.setColor(getResources().getColor(circleColor));
-        paintText.setColor(Color.BLACK);
-        canvas.drawCircle(startX + (endX - startX) / 2,
-                startY + (endY - startY) / 2,
-                secondBtn.getWidth() >> 2,
-                paintNum);
-        canvas.drawText(number,
-                startX + (endX - startX) / 2 - paintText.measureText(number) / 2f,
-                startY + (endY - startY) / 2 + (mTextRect.height() >> 1),
-                paintText);
+        float sas = firstBtn.getWidth()/dp;
+        if (startX == endX && startY == endY) {
+            path.reset();
+            paintLine.setStyle(Paint.Style.STROKE);
+            path.addCircle(startX + sas, startY + sas, sas, Path.Direction.CW);
+            canvas.drawPath(path, paintLine);
+
+            paintText.setTextSize(32);
+            paintText.getTextBounds(number, 0, number.length(), mTextRect);
+            int circleColor = R.color.num_color;
+            int textColor = R.color.BGColor;
+            paintNum.setColor(getResources().getColor(circleColor));
+            paintText.setColor(Color.BLACK);
+            canvas.drawCircle(startX + sas * 2,
+                    startY + sas,
+                    sas / 2,
+                    paintNum);
+            canvas.drawText(number,
+                    startX + sas * 2 - paintText.measureText(number) / 2f,
+                    startY + sas + (mTextRect.height() >> 1),
+                    paintText);
+            //canvas.drawCircle(startX + 21, startY + 21, 210, paintLine);
+        } else {
+            canvas.drawLine(startX, startY, endX, endY, paintLine);
+            paintText.setTextSize(32);
+            paintText.getTextBounds(number, 0, number.length(), mTextRect);
+            int circleColor = R.color.num_color;
+            int textColor = R.color.BGColor;
+            paintNum.setColor(getResources().getColor(circleColor));
+            paintText.setColor(Color.BLACK);
+            canvas.drawCircle(startX + (endX - startX) / 2,
+                    startY + (endY - startY) / 2,
+                    secondBtn.getWidth() >> 2,
+                    paintNum);
+            canvas.drawText(number,
+                    startX + (endX - startX) / 2 - paintText.measureText(number) / 2f,
+                    startY + (endY - startY) / 2 + (mTextRect.height() >> 1),
+                    paintText);
+        }
     }
 
     @SuppressLint("ResourceType")
@@ -54,7 +81,7 @@ public class DrawLine extends View {
         startY = firstButton.getY() + (firstButton.getHeight() >> 1);
         endX = secondButton.getX() + (secondButton.getWidth() >> 1);
         endY = secondButton.getY() + (secondButton.getHeight() >> 1);
-        paintLine.setStrokeWidth(5);
+        paintLine.setStrokeWidth(2*dp);
         if (firstButton.getId() > secondButton.getId()) {
             secondBtn = firstButton;
             firstBtn = secondButton;

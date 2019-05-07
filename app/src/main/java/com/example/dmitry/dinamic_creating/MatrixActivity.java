@@ -4,16 +4,27 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 public class MatrixActivity extends AppCompatActivity {
     boolean[][] smejVer, incidVer;
     TextView textSmej, matrixSmej, matrixIncid;
     LinearLayout matrixLayout;
     String text = "";
+    private File xmlFile;
+    final String FILENAME = "file.txt";
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -46,32 +57,51 @@ public class MatrixActivity extends AppCompatActivity {
         if (smejVer.length != 0) {
             StringBuilder stringSmej = new StringBuilder(), stringIncid = new StringBuilder();
             // TODO Сделать-таки подписи к осям (ну то есть номера вершин и рёбер, да)
-            for (int i = 1; i <= smejVer.length; i++) {
-                if (i < 10) {
-                    stringSmej.append("    ");
-                    stringIncid.append("    ");
+            try {
+                // отрываем поток для записи
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+                        openFileOutput(FILENAME, MODE_PRIVATE)));
+
+                Log.d("raar ", "Файл записан");
+                for (int i = 1; i <= smejVer.length; i++) {
+
+                    if (i < 10) {
+                        stringSmej.append("    ");
+                        stringIncid.append("    ");
+                    }
+                    if (i >= 10 && i < 100) {
+                        stringSmej.append("  ");
+                        stringIncid.append("  ");
+                    }
+                    stringSmej.append(i).append(": |");
+                    stringIncid.append(i).append(": |");
+                    for (int j = 0; j < i; j++) {
+                        if (smejVer[i - 1][j]) {
+                            text = "1 | ";
+                            bw.write("1 "); // пишем данные
+                        } else {
+                            text = "0 | ";
+                            bw.write("0 "); // пишем данные
+                        }
+                        stringSmej.append(text);
+                    }
+                    for (int t = 0; t < incidVer[i - 1].length; t++) {
+                        if (incidVer[i - 1][t]) text = "1 | ";
+                        else text = "0 | ";
+                        stringIncid.append(text);
+                    }
+                    stringSmej.append("\n");
+                    stringIncid.append("\n");
+                    bw.write("\n"); // пишем данные
                 }
-                if (i >= 10 && i < 100) {
-                    stringSmej.append("  ");
-                    stringIncid.append("  ");
-                }
-                stringSmej.append(i).append(": |");
-                stringIncid.append(i).append(": |");
-                for (int j = 0; j < i; j++) {
-                    if (smejVer[i - 1][j]) text = "1 | ";
-                    else text = "0 | ";
-                    stringSmej.append(text);
-                }
-                for (int t = 0; t < incidVer[i - 1].length; t++) {
-                    if (incidVer[i - 1][t]) text = "1 | ";
-                    else text = "0 | ";
-                    stringIncid.append(text);
-                }
-                stringSmej.append("\n");
-                stringIncid.append("\n");
+                bw.close(); // закрываем поток
+                matrixSmej.setText(stringSmej);
+                if (incidVer[0].length != 0) matrixIncid.setText(stringIncid);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            matrixSmej.setText(stringSmej);
-            if (incidVer[0].length != 0) matrixIncid.setText(stringIncid);
         }
     }
 }
