@@ -1,13 +1,11 @@
 package com.example.dmitry.dinamic_creating;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -28,12 +26,6 @@ import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
@@ -42,7 +34,6 @@ import at.markushi.ui.CircleButton;
 
 
 public class MainActivity extends AppCompatActivity implements Serializable, View.OnClickListener, View.OnTouchListener, CompoundButton.OnCheckedChangeListener {
-    private static final String FILENAME = "file.txt";
     RelativeLayout rlmain;
     ArrayList<DrawLine> lines; // массив со связями
     ArrayList<View> vershiny; // массив со всеми вершинами
@@ -60,8 +51,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             whatColor,
             dataSaved = false;
     final int MENU_DEL_VER = 1002,
-            MENU_LINE = 1004,
-            DIALOG_EXIT = 1;
+            MENU_LINE = 1004;
 
     final String TAG = "GraDes";
     Random random = new Random();
@@ -71,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     SQLiteDatabase mDb;
     long rowID;
     ContentValues cv;
+
+    AlertDialog.Builder adExit;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -107,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         Log.d("geg", gName);
     }
 
+    // слушатель, который навешивается на каждую создаваемую вершину
     @Override
     public void onClick(View view) {
         if (vershiny.contains(view) && vershiny.contains(aWhile)) {
@@ -179,7 +172,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 break;
 
             case (android.R.id.home):
-                showDialog(DIALOG_EXIT);
+                if (!dataSaved) {
+                    openQuitDialog();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -191,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         aWhile = v;
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.add(Menu.NONE, MENU_DEL_VER, Menu.NONE, getString(R.string.cont_delete));
-        SubMenu subMenu = menu.addSubMenu(getString(R.string.cont_sub_del_rebra)); // подменю
+        SubMenu subMenu = menu.addSubMenu(getString(R.string.cont_sub_del_rebra)); // подменю для удаления рёбер
         for (int i = 0; i < lines.size(); i++) {
             if (aWhile == lines.get(i).firstBtn || aWhile == lines.get(i).secondBtn) {
                 subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + (i + 1));
@@ -294,6 +289,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     }
 
     // кнопка сохранения графа, мб также вписать в меню
+    // TODO поудалять к хуям все эти методы кнопочные
     public void onClickBtnSave(View view) {
 
     }
@@ -309,47 +305,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     }
 
-    protected Dialog onCreateDialog(int id) {
-        if (id == DIALOG_EXIT) {
-            AlertDialog.Builder adb = new AlertDialog.Builder(this);
-            // заголовок
-            adb.setTitle("Выход");
-            // сообщение
-            adb.setMessage("Сохранить данные?");
-            // иконка
-            adb.setIcon(android.R.drawable.ic_dialog_info);
-            // кнопка положительного ответа
-            adb.setPositiveButton("Да", myClickListener);
-            // кнопка отрицательного ответа
-            adb.setNegativeButton("Нет", myClickListener);
-            // кнопка нейтрального ответа
-            adb.setNeutralButton("Отмена", myClickListener);
-            // создаем диалог
-            return adb.create();
-        }
-        return super.onCreateDialog(id);
-    }
 
-    DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
-            switch (which) {
-                // положительная кнопка
-                case Dialog.BUTTON_POSITIVE:
-                    saveData();
-                    finAct();
-                    //finish();
-                    break;
-                // негативная кнопка
-                case Dialog.BUTTON_NEGATIVE:
-                    finAct();
-                    //finish();
-                    break;
-                // нейтральная кнопка
-                case Dialog.BUTTON_NEUTRAL:
-                    break;
-            }
-        }
-    };
 
     private void finAct() {
         Intent intentList = new Intent(MainActivity.this, GraphListActivity.class);
@@ -381,6 +337,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         }
 
         ArrayList<String> product1 = new ArrayList<>();
+
+        // cv -- переменная для нормальной вставки записей в таблицу
         cv = new ContentValues();
         cv.clear();
         cv.put("gVers", vers.toString());
@@ -397,13 +355,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             cursor1.moveToNext();
         }
         cursor1.close();
-
+        // если в БД нет графа с указанным именем -- просто вставка
         if (!product1.contains(gName)) {
-            rowID = mDb.insert("graphs", null, cv);
+            mDb.insert("graphs", null, cv);
+            // иначе -- просто обновление
         } else {
             mDb.update("graphs", cv, "gName = ?", new String[] {gName});
         }
-        Log.d("dood", String.valueOf(rowID));
 
         mDb.close();
         Toast.makeText(this, "Граф " + gName + " сохранён", Toast.LENGTH_SHORT).show();
@@ -411,6 +369,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         dataSaved = true;
     }
 
+    // метод создания матриц
     void createMatrix(){
         smejVerBool = new boolean[vershiny.size()][vershiny.size()];
         incidVerBool = new boolean[vershiny.size()][lines.size()];
@@ -427,5 +386,31 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 }
             }
         }
+    }
+
+
+    // метод, срабатывающий при нажатии кнопки "назад"
+    public void onBackPressed() {
+        openQuitDialog();
+    }
+
+    // метод создания предупреждающего диалога
+    void openQuitDialog(){
+        adExit = new AlertDialog.Builder(this);
+        adExit.setTitle("Выход");  // заголовок
+        adExit.setMessage("Сохранить данные?"); // сообщение
+        adExit.setPositiveButton("Сохранить", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                saveData();
+                finAct();
+            }
+        });
+        adExit.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                finAct();
+            }
+        });
+        adExit.setCancelable(true);
+        adExit.show();
     }
 }

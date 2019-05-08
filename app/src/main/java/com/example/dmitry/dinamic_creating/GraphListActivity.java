@@ -16,11 +16,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,10 @@ public class GraphListActivity extends AppCompatActivity {
     DatabaseHelper mDBHelper;
     SQLiteDatabase mDb;
 
+    ArrayAdapter<String> adapter;
+
     ListView lvGraphs;
+    AlertDialog.Builder ad;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,13 +59,34 @@ public class GraphListActivity extends AppCompatActivity {
         cursor.close();
         Log.d("sus", product.toString());
 
-        mDBHelper.close();
+        //mDb.close();
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+        //mDBHelper.close();
+        adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, product);
 
         // присваиваем адаптер списку
         lvGraphs.setAdapter(adapter);
+
+        // нажатие на элемент списка
+        lvGraphs.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                Log.d("Click", "itemClick: position = " + position + ", id = "
+                        + id);
+            }
+        });
+
+        // долгое нажатие с последующим удалением
+        lvGraphs.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                //Log.d("ppp", String.valueOf(lvGraphs.getItemAtPosition(position)));
+                openDeleteDialog(parent, position);
+                return true;
+            }
+        });
     }
 
     public void onClickBtnAddGraph(View view) {
@@ -79,7 +105,7 @@ public class GraphListActivity extends AppCompatActivity {
 
         //Настраиваем сообщение в диалоговом окне:
         mDialogBuilder
-                .setCancelable(false)
+                .setCancelable(true)
                 .setPositiveButton("OK",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,int id) {
@@ -102,6 +128,36 @@ public class GraphListActivity extends AppCompatActivity {
 
         //и отображаем его:
         alertDialog.show();
+    }
+
+    void openDeleteDialog(final AdapterView<?> parent, final int position){
+        final String gName = String.valueOf(lvGraphs.getItemAtPosition(position));
+
+        //mDBHelper = new DatabaseHelper(this);
+        //mDb = mDBHelper.getWritableDatabase();
+
+        ad = new AlertDialog.Builder(this);
+        ad.setTitle("Удаление");  // заголовок
+        ad.setMessage("Вы точно хотите удалить граф?"); // сообщение
+        ad.setPositiveButton("Да", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                mDb.delete("graphs", "gName = ?", new String[]{gName});
+                String selectedItem = parent.getItemAtPosition(position).toString();
+                adapter.remove(selectedItem);
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(getApplicationContext(),
+                        "Граф " + selectedItem + " удалён.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+        ad.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                dialog.cancel();
+            }
+        });
+        ad.setCancelable(true);
+        ad.show();
     }
 }
 
