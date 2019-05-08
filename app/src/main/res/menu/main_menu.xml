@@ -5,15 +5,26 @@
     tools:context=".MainActivity">
     <item
         android:id="@+id/action_matrix"
-        android:orderInCategory="100"
+        android:orderInCategory="3"
         android:title="@string/action_matrix"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_info"
-        android:orderInCategory="100"
+        android:orderInCategory="4"
         android:title="@string/action_info"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_save_graph"
+        android:orderInCategory="1"
+        android:title="Сохранить граф"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_load_graph"
+        android:orderInCategory="2"
+        android:title="Загрузить граф"
+        app:showAsAction="never" />
 
 </menu>

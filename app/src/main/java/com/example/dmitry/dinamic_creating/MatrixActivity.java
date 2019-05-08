@@ -1,5 +1,8 @@
 package com.example.dmitry.dinamic_creating;
 
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -23,8 +26,6 @@ public class MatrixActivity extends AppCompatActivity {
     TextView textSmej, matrixSmej, matrixIncid;
     LinearLayout matrixLayout;
     String text = "";
-    private File xmlFile;
-    final String FILENAME = "file.txt";
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -39,10 +40,12 @@ public class MatrixActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_matrix);
+
         ActionBar actionBar = getSupportActionBar();
         assert actionBar != null;
         actionBar.setHomeButtonEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);
+
         matrixLayout = findViewById(R.id.matrix_layout);
         textSmej = findViewById(R.id.textViewSmej);
         matrixSmej = findViewById(R.id.matrixSmej);
@@ -57,12 +60,6 @@ public class MatrixActivity extends AppCompatActivity {
         if (smejVer.length != 0) {
             StringBuilder stringSmej = new StringBuilder(), stringIncid = new StringBuilder();
             // TODO Сделать-таки подписи к осям (ну то есть номера вершин и рёбер, да)
-            try {
-                // отрываем поток для записи
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
-                        openFileOutput(FILENAME, MODE_PRIVATE)));
-
-                Log.d("raar ", "Файл записан");
                 for (int i = 1; i <= smejVer.length; i++) {
 
                     if (i < 10) {
@@ -78,10 +75,8 @@ public class MatrixActivity extends AppCompatActivity {
                     for (int j = 0; j < i; j++) {
                         if (smejVer[i - 1][j]) {
                             text = "1 | ";
-                            bw.write("1 "); // пишем данные
                         } else {
                             text = "0 | ";
-                            bw.write("0 "); // пишем данные
                         }
                         stringSmej.append(text);
                     }
@@ -92,17 +87,9 @@ public class MatrixActivity extends AppCompatActivity {
                     }
                     stringSmej.append("\n");
                     stringIncid.append("\n");
-                    bw.write("\n"); // пишем данные
                 }
-                bw.close(); // закрываем поток
                 matrixSmej.setText(stringSmej);
                 if (incidVer[0].length != 0) matrixIncid.setText(stringIncid);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }
-

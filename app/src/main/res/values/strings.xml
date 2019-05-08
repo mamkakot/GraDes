@@ -15,4 +15,5 @@
     <string name="matrix_incid">Матрица инцидентности:</string>
     <string name="matrix_dostij">Матрица достижимости:</string>
     <string name="matrix_rasst">Матрица расстояний:</string>
+    <string name="graph_list_title">Список графов</string>
 </resources>

@@ -1,10 +1,18 @@
 package com.example.dmitry.dinamic_creating;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -48,23 +56,40 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             red = R.color.dugaColor,
             btnMainColor = Color.DKGRAY,
             bgColor = R.color.BGColor;
-    boolean lineCreating = false, whatColor;
-    final int MENU_DEL_VER = 1002, MENU_LINE = 1004;
+    boolean lineCreating = false,
+            whatColor,
+            dataSaved = false;
+    final int MENU_DEL_VER = 1002,
+            MENU_LINE = 1004,
+            DIALOG_EXIT = 1;
 
     final String TAG = "GraDes";
     Random random = new Random();
 
+    String gName;
+    DatabaseHelper mDBHelper;
+    SQLiteDatabase mDb;
+    long rowID;
+    ContentValues cv;
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        ActionBar actionBar = getSupportActionBar();
+        assert actionBar != null;
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
         width = size.x;
         height = size.y;
         MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
         rlmain = findViewById(R.id.rlmain);
         rlmain.setBackgroundColor(getResources().getColor(bgColor));
         rlmain.setOnTouchListener(this);
@@ -75,6 +100,11 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         switchMove = findViewById(R.id.switchMove);
         switchAdd = findViewById(R.id.switchAdd);
         if (switchMove != null) switchMove.setOnCheckedChangeListener(this);
+
+        mDBHelper = new DatabaseHelper(this);
+
+        gName = (String) getIntent().getSerializableExtra("gName");
+        Log.d("geg", gName);
     }
 
     @Override
@@ -111,13 +141,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         CircleButton vershNew = new CircleButton(this);
         TextDrawable text = new TextDrawable(this);
         RelativeLayout.LayoutParams rel_lay = new RelativeLayout.LayoutParams(btnSide, btnSide); // ширина и высота создаваемой кнопки
-        rel_lay.leftMargin = (int)x;//random.nextInt(rlmain.getWidth() - btnSide); // рандомный отступ от левой границы
-        rel_lay.topMargin = (int)y;//random.nextInt(rlmain.getHeight() - btnSide); // рандомный отступ от верхней границы
+        rel_lay.leftMargin = (int)x; // отступ от левой границы
+        rel_lay.topMargin = (int)y; // отступ от верхней границы
         vershNew.setLayoutParams(rel_lay); // задание кнопке указанных параметров
-        vershNew.setId(buttonId);
-        text.setText(Integer.toString(++buttonId));
-        text.setTextColor(Color.WHITE);
-        vershNew.setColor(getResources().getColor(blue));
+        vershNew.setId(buttonId); // задание кнопке id
+        text.setText(Integer.toString(++buttonId)); // задание кнопке текста
+        text.setTextColor(Color.WHITE); // цвет текста
+        vershNew.setColor(getResources().getColor(blue)); // цвет вершины
         vershNew.setImageDrawable(text);
         vershiny.add(vershNew);
         rlmain.addView(vershNew); // добавление кнопки на главный экран
@@ -133,25 +163,23 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             case (R.id.action_info):
                 break;
             case (R.id.action_matrix):
-                smejVerBool = new boolean[vershiny.size()][vershiny.size()];
-                incidVerBool = new boolean[vershiny.size()][lines.size()];
-                for (int i = 0; i < vershiny.size(); i++) {
-                    for (int j = 0; j < lines.size(); j++) {
-                        if (vershiny.get(i) == lines.get(j).secondBtn) {
-                            smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).firstBtn)] = true;
-                        }/*
-                        if (vershiny.get(i) == lines.get(j).firstBtn) {
-                            smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).secondBtn)] = true;
-                        }*/
-                        if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
-                            incidVerBool[vershiny.get(i).getId()][j] = true;
-                        }
-                    }
-                }
+                createMatrix();
                 Intent intent = new Intent(MainActivity.this, MatrixActivity.class);
+                // TODO сделать загрузку не через экстры, а при помощи БД
                 intent.putExtra("smej", smejVerBool);
                 intent.putExtra("incid", incidVerBool);
                 startActivity(intent);
+                break;
+
+            case (R.id.action_save_graph):
+                saveData();
+                break;
+
+            case (R.id.action_load_graph):
+                break;
+
+            case (android.R.id.home):
+                showDialog(DIALOG_EXIT);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -221,6 +249,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 // создание
                 if (switchAdd.isChecked()) {
                     createVer(event.getX(), event.getY());
+                    // TODO убрать этот костыль с сохранением
+                    dataSaved = false;
                 }
                 else {
                     dX = v.getX() - event.getRawX();
@@ -250,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                             line.draw();
                         }
                 }
+                dataSaved = false;
                 break;
         }
         return true;
@@ -264,36 +295,137 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     // кнопка сохранения графа, мб также вписать в меню
     public void onClickBtnSave(View view) {
-        int rr = 0;
-        for (View ver:
-             vershiny) {
-            Log.d(Integer.toString(rr++), "x: " + ver.getX() + ", y: " + ver.getY());
-        }
+
     }
 
     // кнопка загрузки графа, мб вписать в меню
     public void onClickBtnLoad(View view) {
-        rlmain.removeAllViews();
-        vershiny.clear();
-        buttonId = 0;
-        lines.clear();
-        lineId = 0;
+        mDb = mDBHelper.getWritableDatabase();
+        mDb.delete("graphs", null, null);
+        mDb.close();
+    }
 
+    public void onClickBtnList(View view) {
 
-        try {
-            // открываем поток для чтения
-            BufferedReader br = new BufferedReader(new InputStreamReader(
-                    openFileInput(FILENAME)));
-            String str = "";
-            // читаем содержимое
-            while ((str = br.readLine()) != null) {
-                Log.d("sees ", str);
-                Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
+
+    protected Dialog onCreateDialog(int id) {
+        if (id == DIALOG_EXIT) {
+            AlertDialog.Builder adb = new AlertDialog.Builder(this);
+            // заголовок
+            adb.setTitle("Выход");
+            // сообщение
+            adb.setMessage("Сохранить данные?");
+            // иконка
+            adb.setIcon(android.R.drawable.ic_dialog_info);
+            // кнопка положительного ответа
+            adb.setPositiveButton("Да", myClickListener);
+            // кнопка отрицательного ответа
+            adb.setNegativeButton("Нет", myClickListener);
+            // кнопка нейтрального ответа
+            adb.setNeutralButton("Отмена", myClickListener);
+            // создаем диалог
+            return adb.create();
+        }
+        return super.onCreateDialog(id);
+    }
+
+    DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+                // положительная кнопка
+                case Dialog.BUTTON_POSITIVE:
+                    saveData();
+                    finAct();
+                    //finish();
+                    break;
+                // негативная кнопка
+                case Dialog.BUTTON_NEGATIVE:
+                    finAct();
+                    //finish();
+                    break;
+                // нейтральная кнопка
+                case Dialog.BUTTON_NEUTRAL:
+                    break;
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+    };
+
+    private void finAct() {
+        Intent intentList = new Intent(MainActivity.this, GraphListActivity.class);
+        startActivity(intentList);
+    }
+
+    void saveData() {
+        int rr = 0;
+        StringBuilder vers = new StringBuilder();
+        for (View ver:
+                vershiny) {
+            Log.d(Integer.toString(rr++), "x: " + ver.getX() + ", y: " + ver.getY());
+            vers.append(ver.getX()).append(" ").append(ver.getY()).append("\n");
+        }
+
+        mDb = mDBHelper.getWritableDatabase();
+
+        createMatrix();
+        // строка матрицы смежности для записи в БД
+        StringBuilder smejMatBool = new StringBuilder();
+        if (smejVerBool.length != 0) {
+            for (int j = 1; j <= smejVerBool.length; j++) {
+                for (int i = 0; i < j; i++) {
+                    if (smejVerBool[j-1][i]) smejMatBool.append("1 ");
+                    else smejMatBool.append("0 ");
+                }
+                smejMatBool.append("\n");
+            }
+        }
+
+        ArrayList<String> product1 = new ArrayList<>();
+        cv = new ContentValues();
+        cv.clear();
+        cv.put("gVers", vers.toString());
+        cv.put("gName", gName);
+        cv.put("gMatS", smejMatBool.toString());
+
+        // просто выборка имён графов
+        Cursor cursor1 = mDb.rawQuery("SELECT gName FROM graphs", null);
+        int idColName1 = cursor1.getColumnIndex("gName");
+        cursor1.moveToFirst();
+        // и проходится по всем строкам, выбирая нужные колонки
+        while (!cursor1.isAfterLast()) {
+            product1.add(cursor1.getString(idColName1));
+            cursor1.moveToNext();
+        }
+        cursor1.close();
+
+        if (!product1.contains(gName)) {
+            rowID = mDb.insert("graphs", null, cv);
+        } else {
+            mDb.update("graphs", cv, "gName = ?", new String[] {gName});
+        }
+        Log.d("dood", String.valueOf(rowID));
+
+        mDb.close();
+        Toast.makeText(this, "Граф " + gName + " сохранён", Toast.LENGTH_SHORT).show();
+
+        dataSaved = true;
+    }
+
+    void createMatrix(){
+        smejVerBool = new boolean[vershiny.size()][vershiny.size()];
+        incidVerBool = new boolean[vershiny.size()][lines.size()];
+        for (int i = 0; i < vershiny.size(); i++) {
+            for (int j = 0; j < lines.size(); j++) {
+                if (vershiny.get(i) == lines.get(j).secondBtn) {
+                    smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).firstBtn)] = true;
+                }/*
+                        if (vershiny.get(i) == lines.get(j).firstBtn) {
+                            smejVerBool[vershiny.get(i).getId()][vershiny.indexOf(lines.get(j).secondBtn)] = true;
+                        }*/
+                if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
+                    incidVerBool[vershiny.get(i).getId()][j] = true;
+                }
+            }
         }
     }
 }

@@ -10,7 +10,7 @@
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="58dp">
 
         <Switch
             android:id="@+id/switchMove"
@@ -22,22 +22,23 @@
 
         <Button
             android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Сохранить"
+            android:layout_width="53dp"
+            android:layout_height="46dp"
             android:onClick="onClickBtnSave"
+            android:text="Сохранить"
+            android:textSize="8sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
         <Button
             android:id="@+id/btnLoad"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Загрузить"
+            android:layout_width="53dp"
+            android:layout_height="46dp"
             android:onClick="onClickBtnLoad"
+            android:text="Загрузить"
+            android:textSize="8sp"
             app:layout_constraintStart_toEndOf="@+id/btnSave"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -45,10 +46,19 @@
             android:id="@+id/switchAdd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:text="+"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/btnLoad" />
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btnList"
+            android:layout_width="42dp"
+            android:layout_height="46dp"
+            android:onClick="onClickBtnList"
+            android:text="список"
+            android:textSize="8sp"
+            app:layout_constraintStart_toEndOf="@+id/btnLoad"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </android.support.constraint.ConstraintLayout>
 
