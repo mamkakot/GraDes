@@ -35,6 +35,8 @@ public class GraphListActivity extends AppCompatActivity {
 
     ListView lvGraphs;
     AlertDialog.Builder ad;
+
+    ArrayList<String> product;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +47,7 @@ public class GraphListActivity extends AppCompatActivity {
         mDBHelper = new DatabaseHelper(this);
         mDb = mDBHelper.getWritableDatabase();
 
-        ArrayList<String> product = new ArrayList<>();
+        product = new ArrayList<>();
 
         // вот эта строчка делает выборку из БД (на языке самого sqlite)
         Cursor cursor = mDb.rawQuery("SELECT gName FROM graphs", null);
@@ -74,15 +76,19 @@ public class GraphListActivity extends AppCompatActivity {
                                     int position, long id) {
                 Log.d("Click", "itemClick: position = " + position + ", id = "
                         + id);
+                //String gName = userInput.getText().toString();
+                String gName = String.valueOf(lvGraphs.getItemAtPosition(position));
+                Log.d("faf", gName);
+                Intent intent = new Intent(GraphListActivity.this, MainActivity.class);
+                intent.putExtra("gName", gName);
+                startActivity(intent);
             }
         });
 
         // долгое нажатие с последующим удалением
         lvGraphs.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                //Log.d("ppp", String.valueOf(lvGraphs.getItemAtPosition(position)));
                 openDeleteDialog(parent, position);
                 return true;
             }
@@ -92,7 +98,7 @@ public class GraphListActivity extends AppCompatActivity {
     public void onClickBtnAddGraph(View view) {
         //Получаем вид с файла prompt.xml, который применим для диалогового окна:
         LayoutInflater li = LayoutInflater.from(this);
-        View promptsView = li.inflate(R.layout.prompt, null);
+        final View promptsView = li.inflate(R.layout.prompt, null);
 
         //Создаем AlertDialog
         AlertDialog.Builder mDialogBuilder = new AlertDialog.Builder(this);
@@ -111,6 +117,9 @@ public class GraphListActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog,int id) {
                                 String gName = userInput.getText().toString();
                                 Log.d("faf", gName);
+                                if (product.contains(gName)) {
+                                    gName += "_1";
+                                }
                                 Intent intent = new Intent(GraphListActivity.this, MainActivity.class);
                                 intent.putExtra("gName", gName);
                                 startActivity(intent);

@@ -9,10 +9,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Display;
@@ -28,9 +31,7 @@ import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Random;
-
-import at.markushi.ui.CircleButton;
+import java.util.Arrays;
 
 
 public class MainActivity extends AppCompatActivity implements Serializable, View.OnClickListener, View.OnTouchListener, CompoundButton.OnCheckedChangeListener {
@@ -43,23 +44,17 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     private float dX, dY;
     View aWhile;
     Switch switchMove, switchAdd;
-    int blue = R.color.rebroColor,
-            red = R.color.dugaColor,
-            btnMainColor = Color.DKGRAY,
+    int red = R.color.dugaColor,
             bgColor = R.color.BGColor;
     boolean lineCreating = false,
             whatColor,
-            dataSaved = false;
+            dataSaved = true;
     final int MENU_DEL_VER = 1002,
             MENU_LINE = 1004;
-
-    final String TAG = "GraDes";
-    Random random = new Random();
 
     String gName;
     DatabaseHelper mDBHelper;
     SQLiteDatabase mDb;
-    long rowID;
     ContentValues cv;
 
     AlertDialog.Builder adExit;
@@ -88,39 +83,205 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         vershiny = new ArrayList<>();
         lines = new ArrayList<>();
         dp = getResources().getDisplayMetrics().density;
-        btnSide = (int) (42 * dp);
+        btnSide = (int) (35 * dp);
         switchMove = findViewById(R.id.switchMove);
         switchAdd = findViewById(R.id.switchAdd);
         if (switchMove != null) switchMove.setOnCheckedChangeListener(this);
 
         mDBHelper = new DatabaseHelper(this);
+        mDb = mDBHelper.getReadableDatabase();
 
         gName = (String) getIntent().getSerializableExtra("gName");
         Log.d("geg", gName);
+
+        ArrayList<String> product1 = new ArrayList<>();
+        Cursor cursor1 = mDb.rawQuery("SELECT gName FROM graphs", null);
+        int idColName1 = cursor1.getColumnIndex("gName");
+        cursor1.moveToFirst();
+        // и проходится по всем строкам, выбирая нужные колонки
+        while (!cursor1.isAfterLast()) {
+            product1.add(cursor1.getString(idColName1));
+            cursor1.moveToNext();
+        }
+        cursor1.close();
+        if (product1.contains(gName)) {
+            loadGraph(gName);
+            loadLines(gName);
+            Log.d("ssaka X", vershiny.get(0).getX() + " ");
+        } else {
+            //mDb.update("graphs", cv, "gName = ?", new String[] {gName});
+        }
+    }
+
+    private void loadGraph(String gName1) {
+        String versCoordsFromDB = "";
+        String matIncidFromDB = "";
+
+        Cursor cursor1 = mDb.query("graphs",
+                new String[] {"gVers", "gMatI"},
+                "gName = ?",
+                new String[] {gName1},
+                null,
+                null,
+                null);
+        //int idColName1 = cursor1.getColumnIndex("gName");
+        int idColVers = cursor1.getColumnIndex("gVers");
+        int idColMatI = cursor1.getColumnIndex("gMatI");
+        cursor1.moveToFirst();
+        // и проходится по всем строкам, выбирая нужные колонки
+        while (!cursor1.isAfterLast()) {
+            versCoordsFromDB = (cursor1.getString(idColVers));
+            matIncidFromDB = (cursor1.getString(idColMatI));
+            cursor1.moveToNext();
+        }
+        cursor1.close();
+
+        String[] versCoordsRaw = {};
+        Float[][] versCoords = {{}};
+        if (!versCoordsFromDB.isEmpty()) {
+            versCoordsRaw = versCoordsFromDB.split("\n");
+            versCoords = new Float[versCoordsRaw.length][3];
+        }
+
+        String [] matIncidRaw = {};
+        String [][] matIncidRaw2 = {{}};
+        if (!matIncidFromDB.isEmpty()) {
+            matIncidRaw = matIncidFromDB.split("\n");
+            matIncidRaw2 = new String[matIncidRaw.length][matIncidRaw[0].length() / 2];
+        }
+
+        for (int i = 0; i < versCoordsRaw.length; i++) {
+            for (int j = 0; j < versCoordsRaw[i].split(" ").length; j++) {
+                versCoords[i][j] = Float.valueOf(versCoordsRaw[i].split(" ")[j]);
+            }
+
+            System.arraycopy(matIncidRaw[i].split(" "), 0, matIncidRaw2[i], 0, matIncidRaw[i].split(" ").length);
+        }
+
+        for (Float[] so : versCoords) {
+            createVer(so[0], so[1]);
+        }
+
+        String [][] matIncidFin = new String[matIncidRaw2[0].length][matIncidRaw2.length];
+        int retArrI = 0;
+        int retArrJ = 0;
+        /*for (int i = 0; i < matIncidRaw2.length; i++) {
+            for (int j = 0; j < matIncidRaw2[i].length; j++) {
+                matIncidFin[j][i] = matIncidRaw2[i][j];
+            }
+        }*/
+        for (String [] srI: matIncidRaw2) {
+            for (String srJ: srI) {
+                matIncidFin[retArrI++][retArrJ] = (srJ);
+            }
+            retArrI = 0;
+            retArrJ++;
+            //Log.d("retArrIndex'ы", retArrI + " " + retArrJ);
+        }
+
+
+        for (int i = 0; i < matIncidFin.length; i++) {
+                Log.d("fuka", TextUtils.join("", matIncidFin[i]) + " ");
+        }
+
+
+        for (int i = 0; i < matIncidFin.length; i++) {
+            int fB, sB;
+            fB = TextUtils.join("", matIncidFin[i]).indexOf("1");
+            sB = TextUtils.join("", matIncidFin[i]).indexOf("1", fB+1);
+            if (fB != -1) {
+                if (sB == -1) {
+                    createLine(vershiny.get(fB), vershiny.get(fB));
+                } else {
+                    createLine(vershiny.get(sB), vershiny.get(fB));
+                }
+                Log.d("index's", fB + " " + sB);
+            }
+        }
+        for (int i = 0; i < matIncidFin.length; i++) {
+            //Log.d("row", i + " " + matIncidFin[i] + " " + matIncidFin[i].toString().indexOf("1"));
+        }
+        //createLine(vershiny.get(0), vershiny.get(1));
+        //rlmain.requestLayout();
+        //Log.d("array check", matIncidRaw2[0][0]);
+    }
+
+    void loadLines(String gName2){
+        //String versCoords = "";
+        String matI = "";
+        Cursor cursor1 = mDb.query("graphs",
+                new String[] {"gMatI"},
+                "gName = ?",
+                new String[] {gName2},
+                null,
+                null,
+                null);
+        //int idColName1 = cursor1.getColumnIndex("gName");
+        //int idColVers = cursor1.getColumnIndex("gVers");
+        int idColMatI = cursor1.getColumnIndex("gMatI");
+        cursor1.moveToFirst();
+        // и проходится по всем строкам, выбирая нужные колонки
+        while (!cursor1.isAfterLast()) {
+            matI = (cursor1.getString(idColMatI));
+            cursor1.moveToNext();
+        }
+        cursor1.close();
+
+        /*String [] matI1 = matI.split("\n");
+        String [][] matI2 = new String[matI1.length][vershiny.size()];
+
+        for (int i = 0; i < matI1.length; i++) {
+            matI2[i] = matI1[i].split(" ");
+        }*/
+        /*for (int i = 0; i < sis.length; i++) {
+            String [] sus = sas[i].split(" ");
+            for (int j = 0; j < sus.length; j++) {
+                sos[i][j] = Float.valueOf(sus[j]);
+            }
+
+            sqs [i] = sis[i].split(" ");
+        }*/
+        /*
+        for (int r = 0; r < sqs.length; r++) {
+            for (int w = 0; w < r; w++) {
+                if (sqs[r][w].equals("1")) {
+                    createLine(vershiny.get(w), vershiny.get(r));
+                }
+                Log.d("suka", sqs[1][0].equals("1") + " " + gName2 + vershiny.get(w).getY() + vershiny.get(r).getY());
+            }
+        }*/
+
+        //Log.d("sukaLines", matI + " " + gName2);
     }
 
     // слушатель, который навешивается на каждую создаваемую вершину
     @Override
     public void onClick(View view) {
-        if (vershiny.contains(view) && vershiny.contains(aWhile)) {
-            if (lineCreating) {
-                DrawLine mDrawLine = new DrawLine(this);
-                mDrawLine.setCoords(aWhile, view);
-                mDrawLine.setId(lineId);
-                mDrawLine.number = Integer.toString(++lineId);
-                mDrawLine.draw();
-                if (whatColor) {
-                    mDrawLine.setColor(getResources().getColor(red));
-                } else {
-                    mDrawLine.setColor(getResources().getColor(red));
-                }
-                lineCreating = false;
-                lines.add(mDrawLine);
-                rlmain.addView(mDrawLine);
-                view.bringToFront(); // чтобы вершины были впереди линий
-                aWhile.bringToFront();
-            }
+        if (lineCreating) {
+            createLine(view, aWhile);
         }
+        Log.d("Координаты вершины:", view.getY() + " " + view.getX());
+    }
+
+    private void createLine(View ver1, View ver2) {
+        if (vershiny.contains(ver1) && vershiny.contains(ver2)) {
+            DrawLine mDrawLine = new DrawLine(this);
+            mDrawLine.setCoords(ver2, ver1, btnSide);
+            mDrawLine.setId(lineId);
+            mDrawLine.number = Integer.toString(++lineId);
+            mDrawLine.draw();
+            if (whatColor) {
+                mDrawLine.setColor(getResources().getColor(red));
+            } else {
+                mDrawLine.setColor(getResources().getColor(red));
+            }
+            lineCreating = false;
+            lines.add(mDrawLine);
+            rlmain.addView(mDrawLine);
+            ver1.bringToFront(); // чтобы вершины были впереди линий
+            ver2.bringToFront();
+        }
+        //Log.d("Line creating", ver1.getX() + " " + ver1.getY() + " " + ver1.getId());
     }
 
     @Override
@@ -131,22 +292,27 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     @SuppressLint("ClickableViewAccessibility")
     void createVer(float x, float y){
-        CircleButton vershNew = new CircleButton(this);
+
+        FloatingActionButton vershNew = new FloatingActionButton(this);
+        vershNew.setX(x);
+        vershNew.setY(y);
+        vershNew.setCustomSize(btnSide);
+
         TextDrawable text = new TextDrawable(this);
-        RelativeLayout.LayoutParams rel_lay = new RelativeLayout.LayoutParams(btnSide, btnSide); // ширина и высота создаваемой кнопки
-        rel_lay.leftMargin = (int)x; // отступ от левой границы
-        rel_lay.topMargin = (int)y; // отступ от верхней границы
-        vershNew.setLayoutParams(rel_lay); // задание кнопке указанных параметров
         vershNew.setId(buttonId); // задание кнопке id
         text.setText(Integer.toString(++buttonId)); // задание кнопке текста
         text.setTextColor(Color.WHITE); // цвет текста
-        vershNew.setColor(getResources().getColor(blue)); // цвет вершины
-        vershNew.setImageDrawable(text);
-        vershiny.add(vershNew);
+        // цвет кнопки, ибо через ресурсы нормально не задашь
+        vershNew.getBackground().setColorFilter(Color.parseColor("#5581a6"), PorterDuff.Mode.MULTIPLY);
+        vershNew.setImageDrawable(text); // навешивание текста
+        vershiny.add(vershNew); // добавление в список вершин
         rlmain.addView(vershNew); // добавление кнопки на главный экран
         registerForContextMenu(vershNew); // для дальнейшего вызова контекстного меню
         vershNew.setOnClickListener(this); // навешивание слушателя
+        // навешивание слушателя для перетаскивания
         if (switchMove.isChecked()) vershNew.setOnTouchListener(this);
+
+        //Log.d("Ver coords", vershNew.getX() + " " + vershNew.getY());
     }
 
     @Override
@@ -168,13 +334,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 saveData();
                 break;
 
-            case (R.id.action_load_graph):
-                break;
-
             case (android.R.id.home):
-                if (!dataSaved) {
-                    openQuitDialog();
-                }
+                onBackPressed();
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -202,7 +363,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             // удаление вершины
             case MENU_DEL_VER:
                 ArrayList<DrawLine> linesToDel = new ArrayList<>();
-                //ArrayList<View> verToDel = new ArrayList<>();
                 message = new StringBuilder("Вершина удалена"); // хз почему именно стринг баффер, надо почитать в инете
 
                 for (int j = 0; j < vershiny.size(); j++) {
@@ -218,12 +378,16 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 }
                 lines.removeAll(linesToDel); // вся эта хрень выше -- для нормального удаления связей и вершин
                 linesToDel.clear(); // освобождение памяти
+                //aWhile.setVisibility(View.GONE);
+                //vershiny.remove(aWhile);
+                dataSaved = false;
                 break;
                 // создание линии
             case MENU_LINE:
                 message = new StringBuilder("Нажмите на вершину");
                 lineCreating = true;
                 whatColor = true;
+                dataSaved = false;
                 break;
             default:
                 return super.onContextItemSelected(item);
@@ -268,14 +432,14 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                         for (DrawLine line : lines) {
                             for (View smejBtn : vershiny) {
                                 if (smejBtn == line.secondBtn)
-                                    line.setCoords(line.firstBtn, smejBtn);
+                                    line.setCoords(line.firstBtn, smejBtn, btnSide);
                                 if (smejBtn == line.firstBtn)
-                                    line.setCoords(smejBtn, line.secondBtn);
+                                    line.setCoords(smejBtn, line.secondBtn, btnSide);
                             }
                             line.draw();
                         }
+                    dataSaved = false;
                 }
-                dataSaved = false;
                 break;
         }
         return true;
@@ -305,8 +469,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     }
 
-
-
     private void finAct() {
         Intent intentList = new Intent(MainActivity.this, GraphListActivity.class);
         startActivity(intentList);
@@ -317,7 +479,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         StringBuilder vers = new StringBuilder();
         for (View ver:
                 vershiny) {
-            Log.d(Integer.toString(rr++), "x: " + ver.getX() + ", y: " + ver.getY());
+            //Log.d(Integer.toString(rr++), "x: " + ver.getX() + ", y: " + ver.getY());
             vers.append(ver.getX()).append(" ").append(ver.getY()).append("\n");
         }
 
@@ -326,6 +488,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         createMatrix();
         // строка матрицы смежности для записи в БД
         StringBuilder smejMatBool = new StringBuilder();
+        StringBuilder incidMatBool = new StringBuilder();
         if (smejVerBool.length != 0) {
             for (int j = 1; j <= smejVerBool.length; j++) {
                 for (int i = 0; i < j; i++) {
@@ -333,6 +496,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                     else smejMatBool.append("0 ");
                 }
                 smejMatBool.append("\n");
+
+                for (int t = 0; t < incidVerBool[j - 1].length; t++) {
+                    if (incidVerBool[j - 1][t]) incidMatBool.append("1 ");
+                    else incidMatBool.append("0 ");
+                }
+                incidMatBool.append("\n");
             }
         }
 
@@ -344,6 +513,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         cv.put("gVers", vers.toString());
         cv.put("gName", gName);
         cv.put("gMatS", smejMatBool.toString());
+        cv.put("gMatI", incidMatBool.toString());
 
         // просто выборка имён графов
         Cursor cursor1 = mDb.rawQuery("SELECT gName FROM graphs", null);
@@ -367,6 +537,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         Toast.makeText(this, "Граф " + gName + " сохранён", Toast.LENGTH_SHORT).show();
 
         dataSaved = true;
+
+        //finAct();
     }
 
     // метод создания матриц
@@ -391,7 +563,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     // метод, срабатывающий при нажатии кнопки "назад"
     public void onBackPressed() {
-        openQuitDialog();
+        if (!dataSaved) {
+            openQuitDialog();
+        } else {
+            finAct();
+        }
+        //Log.d("datasaved", String.valueOf(dataSaved));
     }
 
     // метод создания предупреждающего диалога
