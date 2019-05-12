@@ -11,14 +11,22 @@
         android:id="@+id/tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/dialog_add_graph_input"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:text="@string/dialog_auth_input"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="20sp" />
 
     <EditText
-        android:id="@+id/userInput"
+        android:id="@+id/login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
         <requestFocus />
     </EditText>
+
+    <EditText
+        android:id="@+id/pword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPassword" />
 
 </LinearLayout>

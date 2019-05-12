@@ -15,11 +15,11 @@ public class DrawLine extends View {
     Path path = new Path();
     Paint paintLine = new Paint(), paintNum = new Paint(), paintText = new Paint();
     public View firstBtn, secondBtn;
-    public String number = "";
+    public int number = -228;
     private Rect mTextRect = new Rect();
 
     int btnSide;
-    // TODO Переделать дизайн, выглядит убого. Подобрать какие-нибудь три сочетающихся цвета и от это плясать
+
     public DrawLine(Context context) {
         super(context);
     }
@@ -35,6 +35,7 @@ public class DrawLine extends View {
     @Override
     public void onDraw(Canvas canvas) {
         float sas = btnSide;
+
         if (startX == endX && startY == endY) {
             path.reset();
             paintLine.setStyle(Paint.Style.STROKE);
@@ -42,7 +43,7 @@ public class DrawLine extends View {
             canvas.drawPath(path, paintLine);
 
             paintText.setTextSize(32);
-            paintText.getTextBounds(number, 0, number.length(), mTextRect);
+            paintText.getTextBounds(String.valueOf(number), 0, String.valueOf(number).length(), mTextRect);
             int circleColor = R.color.num_color;
             paintNum.setColor(getResources().getColor(circleColor));
             paintText.setColor(Color.BLACK);
@@ -50,14 +51,14 @@ public class DrawLine extends View {
                     startY + sas / 2f,
                     sas / 3f,
                     paintNum);
-            canvas.drawText(number,
-                    startX + sas - paintText.measureText(number) / 2f,
+            canvas.drawText(String.valueOf(number),
+                    startX + sas - paintText.measureText(String.valueOf(number)) / 2f,
                     startY + sas / 2f + (mTextRect.height() >> 1),
                     paintText);
         } else {
             canvas.drawLine(startX, startY, endX, endY, paintLine);
             paintText.setTextSize(34);
-            paintText.getTextBounds(number, 0, number.length(), mTextRect);
+            paintText.getTextBounds(String.valueOf(number), 0, String.valueOf(number).length(), mTextRect);
             int circleColor = R.color.num_color;
             paintNum.setColor(getResources().getColor(circleColor));
             paintText.setColor(Color.BLACK);
@@ -65,8 +66,8 @@ public class DrawLine extends View {
                     startY + (endY - startY) / 2,
                     btnSide / 3f,
                     paintNum);
-            canvas.drawText(number,
-                    startX + (endX - startX) / 2 - paintText.measureText(number) / 2f,
+            canvas.drawText(String.valueOf(number),
+                    startX + (endX - startX) / 2 - paintText.measureText(String.valueOf(number)) / 2f,
                     startY + (endY - startY) / 2 + (mTextRect.height() >> 1),
                     paintText);
         }
@@ -89,6 +90,9 @@ public class DrawLine extends View {
         }
     }
 
+    public void setNum() {
+
+    }
     public void draw() {
         invalidate();
         requestLayout();

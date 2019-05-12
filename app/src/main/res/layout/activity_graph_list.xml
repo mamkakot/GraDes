@@ -6,15 +6,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/btnAddGraph"
-        android:layout_width="62dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:onClick="onClickBtnAddGraph"
-        android:text="+" />
-
     <ListView
         android:id="@+id/lvGraphs"
         android:layout_width="match_parent"

@@ -16,4 +16,9 @@
     <string name="matrix_dostij">Матрица достижимости:</string>
     <string name="matrix_rasst">Матрица расстояний:</string>
     <string name="graph_list_title">Список графов</string>
+    <string name="action_add_ver">Добавлять вершины</string>
+    <string name="dialog_auth_input">Введите имя пользователя и пароль</string>
+    <string name="dialog_add_graph_input">Введите название графа:</string>
+    <string name="action_auth">Войти/зарегестрироваться</string>
+    <string name="action_add_graph">Добавить граф</string>
 </resources>
