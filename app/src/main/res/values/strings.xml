@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GraDes</string>
+    <string name="app_name">Gra\'Des</string>
     <string name="matrix_title">Матрицы</string>
     <string name="cont_delete">Удалить вершину</string>
     <string name="cont_duga">Создать дугу</string>

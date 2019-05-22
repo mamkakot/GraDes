@@ -23,6 +23,7 @@
             android:label="@string/matrix_title"/>
         <activity android:name=".MainActivity"
             android:label="@string/graph_list_title"/>
+        <activity android:name=".AlgGlossary" />
     </application>
 
 </manifest>

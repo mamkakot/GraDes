@@ -3,6 +3,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/action_info"
+        android:icon="@drawable/dictionary"
+        android:orderInCategory="4"
+        android:title="@string/action_info"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_auth"
         android:icon="@drawable/auth"
         android:title="@string/action_auth"

@@ -16,7 +16,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Display;
 import android.view.Menu;
@@ -37,8 +36,9 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     ArrayList<DrawLine> lines; // массив со связями
     ArrayList<FloatingActionButton> vershiny; // массив со всеми вершинами
     boolean[][] smejVerBool, incidVerBool;
+    StringBuilder smejMatBool, incidMatBool;
     float dp;
-    int buttonId = 0, lineId = 0, btnSide, width = 0, height = 0; // подсчёт кнопок
+    int buttonId = 0, lineId = 0, btnSide;
     private float dX, dY;
     View aWhile;
     Switch switchMove, switchAdd;
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             MENU_LINE = 1004,
             MENU_DEL_LINE = 1003;
 
-    Integer IDacc, IDg;
+    int IDg;
     String gName;
     DatabaseHelper mDBHelper;
     SQLiteDatabase mDb;
@@ -66,17 +66,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         setContentView(R.layout.activity_main);
 
         gName = (String) getIntent().getSerializableExtra("gName");
-        try {
-            IDacc = (int) getIntent().getSerializableExtra("IDacc");
-        } catch (Exception e) {
-            Log.d("exception", e.getLocalizedMessage());
-        }
 
-        try {
-            IDg = (int) getIntent().getSerializableExtra("IDg");
-        } catch (Exception e) {
-            Log.d("exception", e.getLocalizedMessage());
-        }
+        IDg = (int) getIntent().getSerializableExtra("IDg");
         setTitle(gName);
 
         ActionBar actionBar = getSupportActionBar();
@@ -87,13 +78,12 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        width = size.x;
-        height = size.y;
         MainActivity.this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         rlmain = findViewById(R.id.rlmain);
         rlmain.setBackgroundColor(getResources().getColor(bgColor));
-        rlmain.setOnClickListener(this);
+        rlmain.setOnTouchListener(this);
+
         vershiny = new ArrayList<>();
         lines = new ArrayList<>();
         dp = getResources().getDisplayMetrics().density;
@@ -127,109 +117,20 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         }
         cursor1.close();
         if (product1.contains(gName)) {
-            loadGraph(gName);
-        }
-    }
-
-    private void loadGraph(String gName1) {
-        String versCoordsFromDB = "";
-        String matIncidFromDB = "";
-
-        Cursor cursor1 = mDb.query("graphs",
-                new String[] {"gVers", "gMatI"},
-                "gName = ?",
-                new String[] {gName1},
-                null,
-                null,
-                null);
-        int idColVers = cursor1.getColumnIndex("gVers");
-        int idColMatI = cursor1.getColumnIndex("gMatI");
-        cursor1.moveToFirst();
-        // и проходится по всем строкам, выбирая нужные колонки
-        while (!cursor1.isAfterLast()) {
-            versCoordsFromDB = (cursor1.getString(idColVers));
-            matIncidFromDB = (cursor1.getString(idColMatI));
-            cursor1.moveToNext();
-        }
-        cursor1.close();
-
-        if (versCoordsFromDB != null) {
-            String[] versCoordsRaw = versCoordsFromDB.split("\n");
-            Float[][] versCoords = new Float[versCoordsRaw.length][3];
-
-            for (int i = 0; i < versCoordsRaw.length; i++) {
-                for (int j = 0; j < versCoordsRaw[i].split(" ").length; j++) {
-                    versCoords[i][j] = Float.valueOf(versCoordsRaw[i].split(" ")[j]);
-                }
-            }
-
-            for (Float[] so : versCoords) {
-                createVer(so[0], so[1]);
-            }
-        }
-
-        if (matIncidFromDB != null) {
-            String[] matIncidRaw = matIncidFromDB.split("\n");
-            if (matIncidRaw.length > 0) {
-                String[][] matIncidRaw2 = new String[matIncidRaw.length][matIncidRaw[0].length() / 2];
-
-                for (int i = 0; i < matIncidRaw.length; i++) {
-                    System.arraycopy(matIncidRaw[i].split(" "), 0, matIncidRaw2[i], 0, matIncidRaw[i].split(" ").length);
-                }
-                String[][] matIncidFin = new String[matIncidRaw2[0].length][matIncidRaw2.length];
-                int retArrI = 0;
-                int retArrJ = 0;
-
-                for (String[] srI : matIncidRaw2) {
-                    for (String srJ : srI) {
-                        matIncidFin[retArrI++][retArrJ] = (srJ);
-                    }
-                    retArrI = 0;
-                    retArrJ++;
-                }
-
-                for (int i = 0; i < matIncidFin.length; i++) {
-                    int fB, sB;
-                    fB = TextUtils.join("", matIncidFin[i]).indexOf("1");
-                    sB = TextUtils.join("", matIncidFin[i]).indexOf("1", fB + 1);
-                    if (fB != -1) {
-                        if (sB == -1) {
-                            createLine(vershiny.get(fB), vershiny.get(fB));
-                        } else {
-                            createLine(vershiny.get(sB), vershiny.get(fB));
-                        }
-                    }
-                }
-            }
+            loadGraph();
         }
     }
 
     // слушатель, который навешивается на каждую создаваемую вершину
     @Override
     public void onClick(View view) {
-        if (lineCreating) {
-            createLine(view, aWhile);
-        }
+        if (lineCreating) createLine(view, aWhile);
     }
 
-    private void createLine(View ver1, View ver2) {
-        if (vershiny.contains(ver1) && vershiny.contains(ver2)) {
-            DrawLine mDrawLine = new DrawLine(this);
-            mDrawLine.setCoords(ver2, ver1, btnSide);
-            mDrawLine.setId(lineId);
-            mDrawLine.number = ++lineId;
-            mDrawLine.draw();
-            if (whatColor) {
-                mDrawLine.setColor(getResources().getColor(red));
-            } else {
-                mDrawLine.setColor(getResources().getColor(red));
-            }
-            lineCreating = false;
-            lines.add(mDrawLine);
-            rlmain.addView(mDrawLine);
-            ver1.bringToFront(); // чтобы вершины были впереди линий
-            ver2.bringToFront();
-        }
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (isChecked) for (View ver : vershiny) ver.setOnTouchListener(this);
+        else for (View ver : vershiny) ver.setOnTouchListener(null);
     }
 
     @Override
@@ -238,40 +139,14 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         return true;
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    void createVer(float x, float y){
-        FloatingActionButton vershNew = new FloatingActionButton(this);
-        vershNew.setX(x);
-        vershNew.setY(y);
-        vershNew.setCustomSize(btnSide);
-
-        TextDrawable text = new TextDrawable(this);
-        vershNew.setId(buttonId); // задание кнопке id
-        text.setText(Integer.toString(++buttonId)); // задание кнопке текста
-        text.setTextColor(Color.WHITE); // цвет текста
-        // цвет кнопки, ибо через ресурсы нормально не задашь
-        vershNew.getBackground().setColorFilter(Color.parseColor("#5581a6"), PorterDuff.Mode.MULTIPLY);
-        vershNew.setImageDrawable(text); // навешивание текста
-        vershiny.add(vershNew); // добавление в список вершин
-        rlmain.addView(vershNew); // добавление кнопки на главный экран
-        registerForContextMenu(vershNew); // для дальнейшего вызова контекстного меню
-        vershNew.setOnClickListener(this); // навешивание слушателя
-        // навешивание слушателя для перетаскивания
-        if (switchMove.isChecked()) vershNew.setOnTouchListener(this);
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
-            case (R.id.action_info):
-                break;
             case (R.id.action_matrix):
-                createMatrix();
+                saveData();
                 Intent intent = new Intent(MainActivity.this, MatrixActivity.class);
-                // TODO сделать загрузку не через экстры, а при помощи БД
-                intent.putExtra("smej", smejVerBool);
-                intent.putExtra("incid", incidVerBool);
+                intent.putExtra("IDg", IDg);
                 startActivity(intent);
                 break;
 
@@ -307,9 +182,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         StringBuilder message = new StringBuilder();
         switch (item.getItemId()) {
             // удаление вершины
-            // TODO сделать нормальное удаление вершины
             case MENU_DEL_VER:
-                //ArrayList<DrawLine> linesToDel = new ArrayList<>();
                 message = new StringBuilder("Вершина удалена"); // хз почему именно стринг баффер, надо почитать в инете
 
                 for (int j = 0; j <  vershiny.size(); j++) {
@@ -317,19 +190,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                         vershiny.get(j).setVisibility(View.GONE);
                         for (int i = 0; i < lines.size(); i++) {
                             if (lines.get(i).firstBtn == vershiny.get(j) || lines.get(i).secondBtn == vershiny.get(j)) {
-                                /*lines.get(i).setVisibility(View.GONE);
-                                linesToDel.add(lines.get(i)); // массив для дальнейшего удаления*/
                                 delLine(i);
                                 i--;
                             }
                         }
                     }
                 }
-                //lines.removeAll(linesToDel); // вся эта хрень выше -- для нормального удаления связей и вершин
-                //linesToDel.clear(); // освобождение памяти
 
-
-                Log.d("ver size 1", vershiny.size() + " ");
                 for (int i = 0; i < vershiny.size(); i++) {
                     if (vershiny.get(i).getId() > aWhile.getId()) {
                         TextDrawable text = new TextDrawable(this);
@@ -337,8 +204,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                         text.setText(Integer.toString((vershiny.get(i).getId()) + 1)); // задание кнопке текста
                         text.setTextColor(Color.WHITE); // цвет текста
                         vershiny.get(i).setImageDrawable(text); // навешивание текста
-                        //}
-                        Log.d("button i", vershiny.get(i).getId() + " ");
                     }
                 }
 
@@ -346,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 vershiny.remove(aWhile);
 
                 buttonId--;
-                Log.d("ver size 2", vershiny.size() + " ");
                 dataSaved = false;
                 break;
                 // создание линии
@@ -361,34 +225,10 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             default:
                 int itemId = item.getItemId();
                 delLine(itemId);
-                Log.d("itemId", itemId + " ");
                 return super.onContextItemSelected(item);
-                //break;
         }
         Toast.makeText(this, message.toString(), Toast.LENGTH_SHORT).show();
         return false;
-    }
-
-    void delLine(int lineToDel) {
-        Log.d("line_to_del", lineToDel + " ");
-
-        lines.get(lineToDel).setVisibility(View.GONE);
-
-        Log.d("linesSize1", lineId + " " + lines.size());
-
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).number > lineToDel) {
-                lines.get(i).number--;
-                //if (lines.get(i).number != 0) {
-                    lines.get(i).draw();
-                //}
-                Log.d("line i", i + " ");
-            }
-        }
-        lines.remove(lineToDel);
-        lineId--;
-        Log.d("linesSize2", lineId + " " + lines.size());
-        dataSaved = false;
     }
 
     // функция для создания перетаскивания вершин
@@ -438,30 +278,81 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         return true;
     }
 
-    // метод для навешивания слушателя всем вершинам
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        if (isChecked) for (View ver : vershiny) ver.setOnTouchListener(this);
-        else for (View ver : vershiny) ver.setOnTouchListener(null);
-    }
-
     private void finAct() {
         Intent intentList = new Intent(MainActivity.this, GraphListActivity.class);
         startActivity(intentList);
     }
 
-    void saveData() {
-        StringBuilder vers = new StringBuilder();
-        for (View ver: vershiny) {
-            vers.append(ver.getX()).append(" ").append(ver.getY()).append("\n");
+    @SuppressLint("ClickableViewAccessibility")
+    void createVer(float x, float y){
+        FloatingActionButton vershNew = new FloatingActionButton(this);
+        vershNew.setX(x);
+        vershNew.setY(y);
+        vershNew.setCustomSize(btnSide);
+
+        TextDrawable text = new TextDrawable(this);
+        vershNew.setId(buttonId); // задание кнопке id
+        text.setText(Integer.toString(++buttonId)); // задание кнопке текста
+        text.setTextColor(Color.WHITE); // цвет текста
+        // цвет кнопки, ибо через ресурсы нормально не задашь
+        vershNew.getBackground().setColorFilter(Color.parseColor("#5581a6"), PorterDuff.Mode.MULTIPLY);
+        vershNew.setImageDrawable(text); // навешивание текста
+        vershiny.add(vershNew); // добавление в список вершин
+        rlmain.addView(vershNew); // добавление кнопки на главный экран
+        registerForContextMenu(vershNew); // для дальнейшего вызова контекстного меню
+        vershNew.setOnClickListener(this); // навешивание слушателя
+        // навешивание слушателя для перетаскивания
+        if (switchMove.isChecked()) vershNew.setOnTouchListener(this);
+    }
+
+    private void createLine(View ver1, View ver2) {
+        if (vershiny.contains(ver1) && vershiny.contains(ver2)) {
+            DrawLine mDrawLine = new DrawLine(this);
+            mDrawLine.setCoords(ver2, ver1, btnSide);
+            mDrawLine.setId(lineId);
+            mDrawLine.number = ++lineId;
+            mDrawLine.draw();
+            if (whatColor) mDrawLine.setColor(getResources().getColor(red));
+            else mDrawLine.setColor(getResources().getColor(red));
+
+            lineCreating = false;
+            lines.add(mDrawLine);
+            rlmain.addView(mDrawLine);
+            ver1.bringToFront(); // чтобы вершины были впереди линий
+            ver2.bringToFront();
+        }
+    }
+
+    void delLine(int lineToDel) {
+        lines.get(lineToDel).setVisibility(View.GONE);
+
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).number > lineToDel) {
+                lines.get(i).number--;
+                lines.get(i).draw();
+            }
+        }
+        lines.remove(lineToDel);
+        lineId--;
+        dataSaved = false;
+    }
+
+    void createMatrix(){
+        smejMatBool = new StringBuilder();
+        incidMatBool = new StringBuilder();
+        smejVerBool = new boolean[vershiny.size()][vershiny.size()];
+        incidVerBool = new boolean[vershiny.size()][lines.size()];
+        for (int i = 0; i < vershiny.size(); i++) {
+            for (int j = 0; j < lines.size(); j++) {
+                if (vershiny.get(i) == lines.get(j).secondBtn) {
+                    smejVerBool[i][vershiny.indexOf(lines.get(j).firstBtn)] = true;
+                }
+                if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
+                    incidVerBool[i][j] = true;
+                }
+            }
         }
 
-        mDb = mDBHelper.getWritableDatabase();
-
-        createMatrix();
-        // строка матрицы смежности для записи в БД
-        StringBuilder smejMatBool = new StringBuilder();
-        StringBuilder incidMatBool = new StringBuilder();
         if (smejVerBool.length != 0) {
             for (int j = 1; j <= smejVerBool.length; j++) {
                 for (int i = 0; i < j; i++) {
@@ -477,58 +368,96 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 incidMatBool.append("\n");
             }
         }
+    }
 
-        ArrayList<String> product1 = new ArrayList<>();
+    private void loadGraph() {
+        String versCoordsFromDB = "";
+        String matIncidFromDB = "";
 
-        // cv -- переменная для нормальной вставки записей в таблицу
-        cv = new ContentValues();
-        cv.clear();
-        cv.put("gVers", vers.toString());
-        cv.put("gName", gName);
-        cv.put("gMatS", smejMatBool.toString());
-        cv.put("gMatI", incidMatBool.toString());
-
-        Cursor cursor1 = mDb.rawQuery("SELECT gName FROM graphs", null);
-        int idColName1 = cursor1.getColumnIndex("gName");
+        Cursor cursor1 = mDb.query("graphs",
+                new String[] {"gVers", "gMatI"},
+                "IDg = ?",
+                new String[] {String.valueOf(IDg)},
+                null,
+                null,
+                null);
+        int idColVers = cursor1.getColumnIndex("gVers");
+        int idColMatI = cursor1.getColumnIndex("gMatI");
         cursor1.moveToFirst();
         // и проходится по всем строкам, выбирая нужные колонки
         while (!cursor1.isAfterLast()) {
-            product1.add(cursor1.getString(idColName1));
+            versCoordsFromDB = (cursor1.getString(idColVers));
+            matIncidFromDB = (cursor1.getString(idColMatI));
             cursor1.moveToNext();
         }
         cursor1.close();
-        // если в БД нет графа с указанным именем -- просто вставка
-        if (!product1.contains(gName)) {
-            mDb.insert("graphs", null, cv);
-            Log.d("graphs_to_DB", "graph inserted");
-            // иначе -- просто обновление
-        } else {
-            mDb.update("graphs", cv, "gName = ?", new String[] {gName});
-            Log.d("graphs_to_DB", "graph updated");
+
+        if (versCoordsFromDB != null && !versCoordsFromDB.equals("")) {
+            String[] versCoordsRaw = versCoordsFromDB.split("\n");
+            Float[][] versCoords = new Float[versCoordsRaw.length][3];
+
+            for (int i = 0; i < versCoordsRaw.length; i++) {
+                for (int j = 0; j < versCoordsRaw[i].split(" ").length; j++) {
+                    versCoords[i][j] = Float.valueOf(versCoordsRaw[i].split(" ")[j]);
+                }
+            }
+
+            for (Float[] so : versCoords) {
+                createVer(so[0], so[1]);
+            }
         }
 
-        mDb.close();
-        Toast.makeText(this, "Граф " + gName + " сохранён", Toast.LENGTH_SHORT).show();
+        if (matIncidFromDB != null && !matIncidFromDB.equals("")) {
+            String[] matIncidRaw = matIncidFromDB.split("\n");
+            if (matIncidRaw.length > 0) {
+                String[][] matIncidRaw2 = new String[matIncidRaw.length][matIncidRaw[0].length() / 2];
 
-        dataSaved = true;
-    }
+                for (int i = 0; i < matIncidRaw.length; i++)
+                    System.arraycopy(matIncidRaw[i].split(" "), 0, matIncidRaw2[i], 0, matIncidRaw[i].split(" ").length);
 
-    // метод создания матриц
-    void createMatrix(){
-        smejVerBool = new boolean[vershiny.size()][vershiny.size()];
-        incidVerBool = new boolean[vershiny.size()][lines.size()];
-        for (int i = 0; i < vershiny.size(); i++) {
-            for (int j = 0; j < lines.size(); j++) {
-                if (vershiny.get(i) == lines.get(j).secondBtn) {
-                    smejVerBool[i][vershiny.indexOf(lines.get(j).firstBtn)] = true;
+                String[][] matIncidFin = new String[matIncidRaw2[0].length][matIncidRaw2.length];
+                int retArrI = 0;
+                int retArrJ = 0;
+
+                for (String[] srI : matIncidRaw2) {
+                    for (String srJ : srI) matIncidFin[retArrI++][retArrJ] = (srJ);
+                    retArrI = 0;
+                    retArrJ++;
                 }
-                if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
-                    incidVerBool[i][j] = true;
+
+                for (int i = 0; i < matIncidFin.length; i++) {
+                    int fB, sB;
+                    fB = TextUtils.join("", matIncidFin[i]).indexOf("1");
+                    sB = TextUtils.join("", matIncidFin[i]).indexOf("1", fB + 1);
+                    if (fB != -1)
+                        if (sB == -1) createLine(vershiny.get(fB), vershiny.get(fB));
+                        else createLine(vershiny.get(sB), vershiny.get(fB));
                 }
             }
         }
     }
 
+    void saveData() {
+        createMatrix();
+        StringBuilder vers = new StringBuilder();
+        for (View ver: vershiny) {
+            vers.append(ver.getX()).append(" ").append(ver.getY()).append("\n");
+        }
+
+        // cv -- переменная для нормальной вставки записей в таблицу
+        cv = new ContentValues();
+        cv.clear();
+        cv.put("gName", gName);
+        cv.put("gVers", vers.toString());
+        cv.put("gMatS", smejMatBool.toString());
+        cv.put("gMatI", incidMatBool.toString());
+
+        mDb.update("graphs", cv, "IDg = ?", new String[] {String.valueOf(IDg)});
+
+        Toast.makeText(this, "Граф " + gName + " сохранён", Toast.LENGTH_SHORT).show();
+
+        dataSaved = true;
+    }
 
     // метод, срабатывающий при нажатии кнопки "назад"
     public void onBackPressed() {

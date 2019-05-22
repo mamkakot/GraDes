@@ -11,13 +11,6 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_info"
-        android:icon="@drawable/dictionary"
-        android:orderInCategory="4"
-        android:title="@string/action_info"
-        app:showAsAction="ifRoom" />
-
-    <item
         android:id="@+id/action_save_graph"
         android:icon="@drawable/save"
         android:orderInCategory="1"
