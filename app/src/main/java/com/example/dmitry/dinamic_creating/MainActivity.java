@@ -167,10 +167,15 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         aWhile = v; // кстати, крутой костыль. Это самому себе на будущее
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.add(Menu.NONE, MENU_DEL_VER, Menu.NONE, getString(R.string.cont_delete));
-        SubMenu subMenu = menu.addSubMenu(Menu.NONE, MENU_DEL_LINE, Menu.NONE, getString(R.string.cont_sub_del_rebra)); // подменю для удаления рёбер
-        for (int i = 0; i < lines.size(); i++) {
-            if (aWhile == lines.get(i).firstBtn || aWhile == lines.get(i).secondBtn) {
-                subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + (i + 1));
+        for (DrawLine line: lines) {
+            if (line.firstBtn == aWhile || line.secondBtn == aWhile) {
+                SubMenu subMenu = menu.addSubMenu(Menu.NONE, MENU_DEL_LINE, Menu.NONE, getString(R.string.cont_sub_del_rebra)); // подменю для удаления рёбер
+                for (int i = 0; i < lines.size(); i++) {
+                    if (aWhile == lines.get(i).firstBtn || aWhile == lines.get(i).secondBtn) {
+                        subMenu.add(Menu.NONE, i, Menu.NONE, "№ ребра: " + (i + 1));
+                    }
+                }
+                break;
             }
         }
         menu.add(Menu.NONE, MENU_LINE, Menu.NONE, getString(R.string.cont_rebro));
@@ -179,25 +184,23 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     @SuppressLint("ResourceType")
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        StringBuilder message = new StringBuilder();
+        String message = "";
         switch (item.getItemId()) {
             // удаление вершины
             case MENU_DEL_VER:
-                message = new StringBuilder("Вершина удалена"); // хз почему именно стринг баффер, надо почитать в инете
+                message = "Вершина удалена"; // хз почему именно стринг баффер, надо почитать в инете
 
-                for (int j = 0; j <  vershiny.size(); j++) {
+                for (int j = 0; j <  vershiny.size(); j++)
                     if (vershiny.get(j) == aWhile) {
                         vershiny.get(j).setVisibility(View.GONE);
-                        for (int i = 0; i < lines.size(); i++) {
+                        for (int i = 0; i < lines.size(); i++)
                             if (lines.get(i).firstBtn == vershiny.get(j) || lines.get(i).secondBtn == vershiny.get(j)) {
                                 delLine(i);
                                 i--;
                             }
-                        }
                     }
-                }
 
-                for (int i = 0; i < vershiny.size(); i++) {
+                for (int i = 0; i < vershiny.size(); i++)
                     if (vershiny.get(i).getId() > aWhile.getId()) {
                         TextDrawable text = new TextDrawable(this);
                         vershiny.get(i).setId(vershiny.get(i).getId() - 1); // задание кнопке id
@@ -205,7 +208,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                         text.setTextColor(Color.WHITE); // цвет текста
                         vershiny.get(i).setImageDrawable(text); // навешивание текста
                     }
-                }
 
                 aWhile.setVisibility(View.GONE);
                 vershiny.remove(aWhile);
@@ -215,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 break;
                 // создание линии
             case MENU_LINE:
-                message = new StringBuilder("Нажмите на вершину");
+                message = "Нажмите на вершину";
                 lineCreating = true;
                 whatColor = true;
                 dataSaved = false;
@@ -227,7 +229,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
                 delLine(itemId);
                 return super.onContextItemSelected(item);
         }
-        Toast.makeText(this, message.toString(), Toast.LENGTH_SHORT).show();
+        if (!message.equals(""))
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         return false;
     }
 
@@ -235,7 +238,6 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-
         switch (event.getAction()) {
             // ACTION_DOWN срабатывает при прикосновении к экрану,
             // здесь определяется начальное стартовое положение объекта:
@@ -294,15 +296,14 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         vershNew.setId(buttonId); // задание кнопке id
         text.setText(Integer.toString(++buttonId)); // задание кнопке текста
         text.setTextColor(Color.WHITE); // цвет текста
-        // цвет кнопки, ибо через ресурсы нормально не задашь
         vershNew.getBackground().setColorFilter(Color.parseColor("#5581a6"), PorterDuff.Mode.MULTIPLY);
         vershNew.setImageDrawable(text); // навешивание текста
         vershiny.add(vershNew); // добавление в список вершин
         rlmain.addView(vershNew); // добавление кнопки на главный экран
         registerForContextMenu(vershNew); // для дальнейшего вызова контекстного меню
         vershNew.setOnClickListener(this); // навешивание слушателя
-        // навешивание слушателя для перетаскивания
-        if (switchMove.isChecked()) vershNew.setOnTouchListener(this);
+        if (switchMove.isChecked())
+            vershNew.setOnTouchListener(this); // навешивание слушателя для перетаскивания
     }
 
     private void createLine(View ver1, View ver2) {
@@ -326,12 +327,11 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     void delLine(int lineToDel) {
         lines.get(lineToDel).setVisibility(View.GONE);
 
-        for (int i = 0; i < lines.size(); i++) {
+        for (int i = 0; i < lines.size(); i++)
             if (lines.get(i).number > lineToDel) {
                 lines.get(i).number--;
                 lines.get(i).draw();
             }
-        }
         lines.remove(lineToDel);
         lineId--;
         dataSaved = false;
@@ -342,16 +342,13 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
         incidMatBool = new StringBuilder();
         smejVerBool = new boolean[vershiny.size()][vershiny.size()];
         incidVerBool = new boolean[vershiny.size()][lines.size()];
-        for (int i = 0; i < vershiny.size(); i++) {
+        for (int i = 0; i < vershiny.size(); i++)
             for (int j = 0; j < lines.size(); j++) {
-                if (vershiny.get(i) == lines.get(j).secondBtn) {
+                if (vershiny.get(i) == lines.get(j).secondBtn)
                     smejVerBool[i][vershiny.indexOf(lines.get(j).firstBtn)] = true;
-                }
-                if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn) {
+                if (vershiny.get(i) == lines.get(j).secondBtn || vershiny.get(i) == lines.get(j).firstBtn)
                     incidVerBool[i][j] = true;
-                }
             }
-        }
 
         if (smejVerBool.length != 0) {
             for (int j = 1; j <= smejVerBool.length; j++) {
@@ -396,15 +393,11 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
             String[] versCoordsRaw = versCoordsFromDB.split("\n");
             Float[][] versCoords = new Float[versCoordsRaw.length][3];
 
-            for (int i = 0; i < versCoordsRaw.length; i++) {
-                for (int j = 0; j < versCoordsRaw[i].split(" ").length; j++) {
+            for (int i = 0; i < versCoordsRaw.length; i++)
+                for (int j = 0; j < versCoordsRaw[i].split(" ").length; j++)
                     versCoords[i][j] = Float.valueOf(versCoordsRaw[i].split(" ")[j]);
-                }
-            }
-
-            for (Float[] so : versCoords) {
+            for (Float[] so : versCoords)
                 createVer(so[0], so[1]);
-            }
         }
 
         if (matIncidFromDB != null && !matIncidFromDB.equals("")) {
@@ -440,10 +433,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
     void saveData() {
         createMatrix();
         StringBuilder vers = new StringBuilder();
-        for (View ver: vershiny) {
+        for (View ver: vershiny)
             vers.append(ver.getX()).append(" ").append(ver.getY()).append("\n");
-        }
-
         // cv -- переменная для нормальной вставки записей в таблицу
         cv = new ContentValues();
         cv.clear();
@@ -461,11 +452,8 @@ public class MainActivity extends AppCompatActivity implements Serializable, Vie
 
     // метод, срабатывающий при нажатии кнопки "назад"
     public void onBackPressed() {
-        if (!dataSaved) {
-            openQuitDialog();
-        } else {
-            finAct();
-        }
+        if (!dataSaved) openQuitDialog();
+        else finAct();
     }
 
     // метод создания предупреждающего диалога
